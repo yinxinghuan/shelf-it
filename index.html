@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <meta name="game-uuid" content="29a034cf-3a7d-4bee-b1e3-a3c6aeecc820" />
+    <meta name="game-uuid" content="3a3bf201-5e03-4110-a041-c696592e7ae4" />
 
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>陈列经营 — Shelf It</title>
+<title>Shelf It</title>
 <script src="./aigram-bridge.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -429,6 +429,15 @@ function updateWalls(dt){
       m.opacity += (target-m.opacity)*Math.min(1,dt*9);
       m.depthWrite = m.opacity > 0.9;          // only the solid (far) walls write depth, so the glassy near walls don't cull floor shadows behind them
       m.visible = m.opacity > 0.04;
+    }
+  }
+  // wall-mounted panels (sign + posters) fade with the wall they hang on, else an opaque poster floats on a frosted wall (残破)
+  for(const p of wallPanels){
+    const facing = camera.position.x*p.nx + camera.position.z*p.nz;
+    const target = facing > 0.4 ? 0.45 : 1;
+    for(const m of p.mats){
+      m.opacity += (target-m.opacity)*Math.min(1,dt*9);
+      m.depthWrite = m.opacity > 0.9;
     }
   }
 }
@@ -1027,11 +1036,13 @@ function canvasTex(draw, w, h){
   const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4; return t;
 }
 // flat panel: +z face carries the texture, sides are warm panel grey; built facing +z then rotated to a wall
+// materials are transparent-capable so wall-mounted panels can fade in lockstep with their (frosted near-camera) wall
+const wallPanels = [];   // {mats:[side,face], nx, nz} — texPanels mounted on a wall, fade with it
 function texPanel(tex, w, h, emInt=0.16){
-  const side = new THREE.MeshStandardMaterial({color:P.panelD, roughness:0.92, metalness:0, flatShading:true});
-  const face = new THREE.MeshStandardMaterial({map:tex, emissive:new THREE.Color(0xffffff), emissiveMap:tex, emissiveIntensity:emInt, roughness:0.9, metalness:0, flatShading:true});
+  const side = new THREE.MeshStandardMaterial({color:P.panelD, roughness:0.92, metalness:0, flatShading:true, transparent:true, opacity:1});
+  const face = new THREE.MeshStandardMaterial({map:tex, emissive:new THREE.Color(0xffffff), emissiveMap:tex, emissiveIntensity:emInt, roughness:0.9, metalness:0, flatShading:true, transparent:true, opacity:1});
   const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,0.06), [side,side,side,side,face,side]);
-  m.castShadow=true; m.receiveShadow=true; return m;
+  m.castShadow=true; m.receiveShadow=true; m.userData.panelMats=[side,face]; return m;
 }
 // store sign — mounted above the door, facing into the shop
 const signTex = canvasTex((ctx,w,h)=>{
@@ -1042,6 +1053,7 @@ const signTex = canvasTex((ctx,w,h)=>{
   ctx.fillStyle='#9a8f86'; ctx.font="800 30px -apple-system,'PingFang SC',sans-serif"; ctx.fillText('陈 列 便 利 店', w/2, h*0.78);
 }, 512, 168);
 const sign = texPanel(signTex, 2.6, 0.80, 0.26); sign.position.set(0, 3.05, -HZ+0.30); store.add(sign);
+wallPanels.push({ mats: sign.userData.panelMats, nx:0, nz:-1 });   // sign hangs on the north wall
 store.add(box(1.9,0.05,0.08, P.steel, 0, 3.46, -HZ+0.22));   // thin mounting bar above it
 // decorative posters
 // posters — variant 0 keeps the original teal colourway (user prefers it); 1 & 2 are comic pop-art graphics
@@ -1079,11 +1091,11 @@ function posterTex(variant){
     ctx.strokeStyle=INK; ctx.lineWidth=16; ctx.strokeRect(8,8,w-16,h-16);   // thick comic border
   }, 360, 480);
 }
-function addPoster(variant, x, y, z, ry){ const p=texPanel(posterTex(variant), 1.12, 1.49); p.position.set(x,y,z); p.rotation.y=ry; store.add(p); }
-addPoster(0,  4.6, 2.30, -HZ+0.16, 0);          // north wall, right of door (above the checkout)
-addPoster(2, -3.95, 2.55, -HZ+0.16, 0);          // north wall, left of door (above the wall-run shelf)
-addPoster(1, -HX+0.16, 2.45, -1.4, Math.PI/2);   // west wall (above the cooler row), faces +x
-addPoster(1, HX-0.16, 2.45, -2.8, -Math.PI/2);   // east wall above the coffee machine — its matching coffee poster, faces -x
+function addPoster(variant, x, y, z, ry, nx, nz){ const p=texPanel(posterTex(variant), 1.12, 1.49); p.position.set(x,y,z); p.rotation.y=ry; store.add(p); wallPanels.push({ mats:p.userData.panelMats, nx, nz }); }
+addPoster(0,  4.6, 2.30, -HZ+0.16, 0, 0, -1);          // north wall, right of door (above the checkout)
+addPoster(2, -3.95, 2.55, -HZ+0.16, 0, 0, -1);          // north wall, left of door (above the wall-run shelf)
+addPoster(1, -HX+0.16, 2.45, -1.4, Math.PI/2, -1, 0);   // west wall (above the cooler row), faces +x
+addPoster(1, HX-0.16, 2.45, -2.8, -Math.PI/2, 1, 0);   // east wall above the coffee machine — its matching coffee poster, faces -x
 
 // FREEZER ROW — packed glass-door coolers + 2 open chest freezers along the WEST wall (frozen family, all playable)
 [-1.65, -0.55, 0.55, 1.65].forEach(z => buildCooler(-6.0, z, Math.PI/2));
