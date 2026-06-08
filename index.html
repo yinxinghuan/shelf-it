@@ -214,17 +214,16 @@
     filter:drop-shadow(2px 2px 0 rgba(21,17,14,.25));}
   #opening .opick .lbl,#unlock .opick .lbl{font-size:14px;font-weight:800;color:var(--ink);letter-spacing:.04em;}
   #unlock .opick .cnt{font-size:10px;font-weight:800;color:var(--ink);opacity:.6;letter-spacing:.04em;margin-top:-4px;}
-  /* ── SHELF · IT wordmark (shared brand stamp) ── */
-  .brandmark{font-family:var(--comic);font-weight:400;line-height:1;letter-spacing:.03em;
-    display:inline-flex;align-items:center;gap:.1em;-webkit-touch-callout:none;user-select:none;
-    -webkit-text-stroke:3px var(--ink);paint-order:stroke fill;white-space:nowrap;}
-  .brandmark .b1{color:var(--yellow);}
-  .brandmark .b2{color:var(--teal);}
-  .brandmark .dot{color:var(--red);margin:0 .04em;}
-  #opening .brandmark,#unlock .brandmark{font-size:46px;transform:rotate(-3deg);margin-bottom:6px;
-    filter:drop-shadow(4px 4px 0 rgba(21,17,14,.3));}
-  #over .brandmark{font-size:22px;-webkit-text-stroke:2px var(--ink);margin:0 auto 4px;
-    display:flex;justify-content:center;filter:drop-shadow(2px 2px 0 rgba(21,17,14,.22));}
+  /* ── SHELF · IT wordmark (matches the feed poster: all-yellow fill + hard red drop-shadow, no ink stroke) ── */
+  .brandmark{font-family:var(--comic);font-weight:400;line-height:1;letter-spacing:.02em;
+    display:inline-flex;align-items:center;gap:.02em;-webkit-touch-callout:none;user-select:none;
+    color:var(--yellow);white-space:nowrap;}
+  .brandmark .b1,.brandmark .b2,.brandmark .dot{color:var(--yellow);}
+  .brandmark .dot{margin:0 .02em;}
+  #opening .brandmark,#unlock .brandmark{font-size:52px;transform:rotate(-2deg);margin-bottom:8px;
+    text-shadow:5px 6px 0 var(--red);}
+  #over .brandmark{font-size:27px;transform:rotate(-2deg);margin:2px auto 5px;
+    display:flex;justify-content:center;text-shadow:3px 4px 0 var(--red);}
   /* ── today's headliner chip (HUD) ── */
   #headliner{position:fixed;top:44px;left:50%;transform:translateX(-50%);z-index:9;
     display:none;align-items:center;gap:7px;padding:4px 13px 4px 8px;border-radius:999px;border:2.5px solid var(--ink);
@@ -308,7 +307,7 @@
     <div class="row"><span data-i18n="row_rent">Rent</span><b id="dayRent" class="rent">-¥0</b></div>
     <div class="row"><span data-i18n="row_sales">Sold · Walkouts</span><b><span id="custDone">0</span> · <span id="custLost">0</span></b></div>
     <div class="goal" id="goal">
-      <div class="gtop"><span id="goalTxt">Goal ¥300</span><span id="goalNow">Net worth ¥0</span></div>
+      <div class="gtop"><span id="goalTxt">Goal ¥120</span><span id="goalNow">Net worth ¥0</span></div>
       <div class="gbar"><div class="gfill" id="goalFill"></div></div>
     </div>
     <div class="hi" id="hiScore"></div>
@@ -1610,7 +1609,7 @@ const CLERK_WAGE = 18;                          // each clerk's daily wage, sett
 const RENT_BASE = 18, RENT_PER_UNIT = 7, RENT_LEVEL = 0.18;   // base + per-fixture floor cost + a small per-branch prestige premium
 function rentFor(){ return Math.round(RENT_BASE*(1 + RENT_LEVEL*(level-1)) + RENT_PER_UNIT*drawUnits()); }
 // ── milestone goals: a forever "make the number bigger" target chain (net-worth tiers) ──
-const GOALS = [300, 800, 2000, 5000, 12000, 30000];
+const GOALS = [120, 350, 900, 2200, 5500, 13000];
 let bankrupt=false;
 // ── store stats are driven entirely by the fixtures you own (#61 — the old buy-a-level levers were folded in here) ──
 function drawUnits(){ return (owned.shelf||0)+(owned.fridge||0)+(owned.coffee||0)+(owned.rack||0); }  // total pull of the floor
