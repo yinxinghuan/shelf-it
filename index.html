@@ -311,7 +311,7 @@
     <div class="row"><span data-i18n="row_rent">Rent</span><b id="dayRent" class="rent">-¥0</b></div>
     <div class="row"><span data-i18n="row_sales">Sold · Walkouts</span><b><span id="custDone">0</span> · <span id="custLost">0</span></b></div>
     <div class="goal" id="goal">
-      <div class="gtop"><span id="goalTxt">Goal ¥120</span><span id="goalNow">Net worth ¥0</span></div>
+      <div class="gtop"><span id="goalTxt">Goal ¥80</span><span id="goalNow">Net worth ¥0</span></div>
       <div class="gbar"><div class="gfill" id="goalFill"></div></div>
     </div>
     <div class="hi" id="hiScore"></div>
@@ -334,7 +334,7 @@
 </div>
 <div id="unlock">
   <div class="brandmark"><span class="b1">SHELF</span><span class="dot">·</span><span class="b2">IT</span></div>
-  <div class="otitle"><span data-i18n="unlock_title">FIT OUT YOUR BRANCH</span><small id="unlockSub">pick one to install</small></div>
+  <div class="otitle"><span id="unlockTitle" data-i18n="unlock_title">FIT OUT YOUR BRANCH</span><small id="unlockSub">pick one to install</small></div>
   <div class="opicks"></div>
 </div>
 <div id="headliner">
@@ -381,8 +381,8 @@ const I18N = {
     restock_pop:'Restock!', switch_to:'Now: {name}',
     cust_left:'left…', cust_got:'Got it!', stamp_bankrupt:'BANKRUPT · DAY {n}', stamp_hit:'HIT ¥{n}',
     over_reached:'Reached DAY {d} · best ¥{n}', over_best:'best ¥{n}',
-    stamp_branch:'NEW BRANCH', branch_head:'GOAL CLEARED!', branch_sub:'You hit ¥{n} — time to open store #{lvl}', branch_btn:'Open Store #{lvl}',
-    unlock_title:'FIT OUT YOUR BRANCH', unlock_pick:'Add one to store #{lvl}',
+    stamp_branch:'NEW BRANCH', stamp_upgrade:'STORE UPGRADE', branch_head:'GOAL CLEARED!', branch_btn:'Open your branch', upgrade_btn:'Upgrade store',
+    unlock_title:'FIT OUT YOUR BRANCH', unlock_title_up:'UPGRADE YOUR STORE', unlock_pick:'Pick one to add',
     eq_shelf:'Shelf', eq_fridge:'Fridge', eq_coffee:'Coffee Bar', eq_rack:'Snack Rack', eq_have:'have {n}', eq_added:'+1 {name}',
   },
   zh: {
@@ -397,8 +397,8 @@ const I18N = {
     restock_pop:'催货!', switch_to:'改卖 {name}',
     cust_left:'走了…', cust_got:'拿到!', stamp_bankrupt:'破产 · DAY {n}', stamp_hit:'达成 ¥{n}',
     over_reached:'撑到 DAY {d} · 历史最高 ¥{n}', over_best:'历史最高 ¥{n}',
-    stamp_branch:'开新分店', branch_head:'目标达成!', branch_sub:'资产突破 ¥{n} — 开第 {lvl} 家分店', branch_btn:'开第 {lvl} 家店',
-    unlock_title:'布置你的分店', unlock_pick:'给第 {lvl} 家店添置一件',
+    stamp_branch:'开新分店', stamp_upgrade:'店铺升级', branch_head:'目标达成!', branch_btn:'开分店', upgrade_btn:'升级店铺',
+    unlock_title:'布置你的分店', unlock_title_up:'升级你的店铺', unlock_pick:'挑一件添置',
     eq_shelf:'货架', eq_fridge:'冷柜', eq_coffee:'咖啡吧', eq_rack:'零食架', eq_have:'已有 {n}', eq_added:'+1 {name}',
   },
 };
@@ -1277,6 +1277,7 @@ const L2_BASE = { shelf:2, fridge:0, coffee:0, rack:0 };
 let owned = Object.assign({}, EQUIP_FULL);   // L1 flagship = full; reset to L2_BASE on the first branch
 let unlockLog = [];                          // (#66) families in the order the player fitted them out → drives the wall posters
 let branchPending = false;                   // set when a goal clears → next day opens the unlock card
+let branchFirst = false;                     // true only for the flagship→first-branch jump; later milestones are upgrades
 
 // teardown boundary: store.children / OBSTACLES up to here are structural + decoration (never torn down)
 const BASE_CHILD = store.children.length;
@@ -1603,7 +1604,7 @@ const cashNumEl=document.getElementById('cashNum'), dayEl=document.getElementByI
       comboEl=document.getElementById('combo'),
       tidiesEl=document.getElementById('tidies'),
       openingEl=document.getElementById('opening'), openPicksEl=openingEl.querySelector('.opicks'),
-      unlockEl=document.getElementById('unlock'), unlockPicksEl=unlockEl.querySelector('.opicks'), unlockSubEl=document.getElementById('unlockSub'),
+      unlockEl=document.getElementById('unlock'), unlockPicksEl=unlockEl.querySelector('.opicks'), unlockSubEl=document.getElementById('unlockSub'), unlockTitleEl=document.getElementById('unlockTitle'),
       headlinerEl=document.getElementById('headliner'), hireEl=document.getElementById('hire'),
       goalTxtEl=document.getElementById('goalTxt'), goalNowEl=document.getElementById('goalNow'),
       goalFillEl=document.getElementById('goalFill');
@@ -1616,7 +1617,7 @@ const CLERK_WAGE = 18;                          // each clerk's daily wage, sett
 const RENT_BASE = 18, RENT_PER_UNIT = 7, RENT_LEVEL = 0.18;   // base + per-fixture floor cost + a small per-branch prestige premium
 function rentFor(){ return Math.round(RENT_BASE*(1 + RENT_LEVEL*(level-1)) + RENT_PER_UNIT*drawUnits()); }
 // ── milestone goals: a forever "make the number bigger" target chain (net-worth tiers) ──
-const GOALS = [120, 350, 900, 2200, 5500, 13000];
+const GOALS = [80, 200, 450, 1000, 2200, 4800];
 let bankrupt=false;
 // ── store stats are driven entirely by the fixtures you own (#61 — the old buy-a-level levers were folded in here) ──
 function drawUnits(){ return (owned.shelf||0)+(owned.fridge||0)+(owned.coffee||0)+(owned.rack||0); }  // total pull of the floor
@@ -1905,7 +1906,8 @@ function openUnlock(){
   for(const arr of [fresh, rest]){ for(let i=arr.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [arr[i],arr[j]]=[arr[j],arr[i]]; } }
   const picks = fresh.concat(rest).slice(0,3);
   openingEl.classList.remove('show');                    // the fit-out card replaces the headliner pick for this beat
-  unlockSubEl.textContent = t('unlock_pick',{lvl:level});
+  unlockTitleEl.textContent = t(branchFirst ? 'unlock_title' : 'unlock_title_up');
+  unlockSubEl.textContent = t('unlock_pick');
   unlockPicksEl.innerHTML = '';
   for(const fam of picks){
     const b = document.createElement('button');
@@ -1978,8 +1980,9 @@ function endOfDay(){
   const prevLevel = level;
   if(!bankrupt) while(goalIdx < GOALS.length && cash >= GOALS[goalIdx]){ hitGoal = GOALS[goalIdx]; goalIdx++; }
   if(hitGoal!==null){
-    level = 1 + goalIdx;                                  // each goal cleared opens the next branch
-    if(prevLevel===1) owned = Object.assign({}, L2_BASE); // leaving the flagship → first branch starts sparse
+    level = 1 + goalIdx;                                  // each goal cleared grows the store one tier
+    branchFirst = (prevLevel===1);                        // first milestone = open your own branch; later ones = upgrades
+    if(branchFirst) owned = Object.assign({}, L2_BASE);   // leaving the flagship → first branch starts sparse
     branchPending = true;                                 // next day opens the fit-out card before trading
   }
   if(cash > hiScore){ hiScore = cash; localStorage.setItem(HISCORE_KEY, hiScore); }
@@ -1988,7 +1991,7 @@ function endOfDay(){
   const stampEl = document.getElementById('stamp');
   overEl.classList.toggle('bust', bankrupt);
   if(bankrupt){ stampEl.textContent=t('stamp_bankrupt',{n:day}); }
-  else if(hitGoal!==null){ stampEl.textContent=t('stamp_branch'); }
+  else if(hitGoal!==null){ stampEl.textContent=t(branchFirst ? 'stamp_branch' : 'stamp_upgrade'); }
   else { stampEl.textContent='DAY '+day; }
   document.querySelector('#over .head').textContent = bankrupt ? t('head_liquidation')
     : (hitGoal!==null ? t('branch_head') : t('profit_head'));
@@ -2004,7 +2007,7 @@ function endOfDay(){
   // bankruptcy hides the goal bar; a solvent day shows the milestone progress
   document.getElementById('goal').style.display = bankrupt ? 'none' : '';
   document.getElementById('replay').textContent = bankrupt ? t('btn_replay')
-    : (hitGoal!==null ? t('branch_btn',{lvl:level}) : t('btn_next'));
+    : (hitGoal!==null ? t(branchFirst ? 'branch_btn' : 'upgrade_btn') : t('btn_next'));
   // a solvent run has no other exit → offer an explicit "start over" (bankruptcy already restarts via the replay button)
   restartRunEl.style.display = bankrupt ? 'none' : 'block'; disarmRestart();
   if(!bankrupt){ renderGoal(); }
