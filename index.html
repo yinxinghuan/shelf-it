@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
     <meta name="game-uuid" content="3a3bf201-5e03-4110-a041-c696592e7ae4" />
 
@@ -190,28 +190,41 @@
   #catpanel .chip.sel{background:var(--teal);}
   #catpanel .chip.sel .lbl{color:var(--ink);}
   /* ── opening: pick today's headliner (one tap, then the shift runs) ── */
-  #opening{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+  #opening,#unlock{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
     gap:24px;background:rgba(21,17,14,.42);z-index:24;}
-  #opening.show{display:flex;}
-  #opening .otitle{font-family:var(--comic);color:var(--yellow);font-size:28px;font-weight:400;letter-spacing:.06em;
+  #opening.show,#unlock.show{display:flex;}
+  #unlock{background:rgba(21,17,14,.62);z-index:26;}
+  #opening .otitle,#unlock .otitle{font-family:var(--comic);color:var(--yellow);font-size:28px;font-weight:400;letter-spacing:.06em;
     -webkit-text-stroke:2.5px var(--ink);paint-order:stroke fill;text-align:center;transform:rotate(-3deg);}
-  #opening .otitle small{display:block;font-family:-apple-system,"PingFang SC",sans-serif;
+  #opening .otitle small,#unlock .otitle small{display:block;font-family:-apple-system,"PingFang SC",sans-serif;
     font-size:11px;font-weight:800;letter-spacing:.1em;color:#fff;-webkit-text-stroke:0;
     margin-top:8px;transform:rotate(3deg);}
-  #opening .opicks{display:flex;gap:16px;}
-  #opening .opick{pointer-events:auto;width:104px;height:124px;border:4px solid var(--ink);cursor:pointer;border-radius:20px;
+  #opening .opicks,#unlock .opicks{display:flex;gap:16px;}
+  #opening .opick,#unlock .opick{pointer-events:auto;width:104px;height:124px;border:4px solid var(--ink);cursor:pointer;border-radius:20px;
     background:var(--paper);
     box-shadow:5px 5px 0 var(--ink);
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
     transition:transform .14s cubic-bezier(.4,1.6,.5,1),box-shadow .14s;-webkit-touch-callout:none;
     animation:opIn .3s cubic-bezier(.4,1.3,.5,1) backwards;}
-  #opening .opick:nth-child(2){animation-delay:.06s;}
-  #opening .opick:nth-child(3){animation-delay:.12s;}
+  #opening .opick:nth-child(2),#unlock .opick:nth-child(2){animation-delay:.06s;}
+  #opening .opick:nth-child(3),#unlock .opick:nth-child(3){animation-delay:.12s;}
   @keyframes opIn{from{transform:translateY(30px) scale(.9);opacity:0;}to{transform:none;opacity:1;}}
-  #opening .opick:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink);}
-  #opening .opick .sil{width:64px;height:64px;background-size:contain;background-position:center;background-repeat:no-repeat;
+  #opening .opick:active,#unlock .opick:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink);}
+  #opening .opick .sil,#unlock .opick .sil{width:64px;height:64px;background-size:contain;background-position:center;background-repeat:no-repeat;
     filter:drop-shadow(2px 2px 0 rgba(21,17,14,.25));}
-  #opening .opick .lbl{font-size:14px;font-weight:800;color:var(--ink);letter-spacing:.04em;}
+  #opening .opick .lbl,#unlock .opick .lbl{font-size:14px;font-weight:800;color:var(--ink);letter-spacing:.04em;}
+  #unlock .opick .cnt{font-size:10px;font-weight:800;color:var(--ink);opacity:.6;letter-spacing:.04em;margin-top:-4px;}
+  /* ── SHELF · IT wordmark (shared brand stamp) ── */
+  .brandmark{font-family:var(--comic);font-weight:400;line-height:1;letter-spacing:.03em;
+    display:inline-flex;align-items:center;gap:.1em;-webkit-touch-callout:none;user-select:none;
+    -webkit-text-stroke:3px var(--ink);paint-order:stroke fill;white-space:nowrap;}
+  .brandmark .b1{color:var(--yellow);}
+  .brandmark .b2{color:var(--teal);}
+  .brandmark .dot{color:var(--red);margin:0 .04em;}
+  #opening .brandmark,#unlock .brandmark{font-size:46px;transform:rotate(-3deg);margin-bottom:6px;
+    filter:drop-shadow(4px 4px 0 rgba(21,17,14,.3));}
+  #over .brandmark{font-size:22px;-webkit-text-stroke:2px var(--ink);margin:0 auto 4px;
+    display:flex;justify-content:center;filter:drop-shadow(2px 2px 0 rgba(21,17,14,.22));}
   /* ── today's headliner chip (HUD) ── */
   #headliner{position:fixed;top:44px;left:50%;transform:translateX(-50%);z-index:9;
     display:none;align-items:center;gap:7px;padding:4px 13px 4px 8px;border-radius:999px;border:2.5px solid var(--ink);
@@ -268,10 +281,10 @@
 <div id="wishes"></div>
 <div id="tidies"></div>
 <div id="fx"></div>
-<div id="catpanel"><div class="card"><div class="ttl">这个货架卖什么</div><div class="grid"></div></div></div>
+<div id="catpanel"><div class="card"><div class="ttl" data-i18n="catpanel_title">WHAT DOES THIS SHELF SELL?</div><div class="grid"></div></div></div>
 <div id="cash"><span class="coin">¥</span><span id="cashNum">60</span></div>
 <div class="hud" id="hdr">
-  <div id="day">DAY 1 · 营业中</div>
+  <div id="day">DAY 1</div>
 </div>
 <div id="clock">
   <svg viewBox="0 0 54 54">
@@ -280,62 +293,54 @@
       stroke-dasharray="138.23" stroke-dashoffset="0"/>
   </svg>
   <div class="t" id="clockT">60</div>
-  <div class="cap">营业</div>
+  <div class="cap" data-i18n="clock_cap">OPEN</div>
 </div>
 <div class="hud" id="combo"></div>
 <div id="over">
   <div class="receipt">
     <div class="stamp" id="stamp">DAY 1</div>
-    <div class="head">今日净利</div>
+    <div class="brandmark"><span class="b1">SHELF</span><span class="dot">·</span><span class="b2">IT</span></div>
+    <div class="head" data-i18n="profit_head">TODAY’S PROFIT</div>
     <div class="total"><span class="y">¥</span><span id="finalCash">0</span></div>
-    <div class="row"><span>营业额</span><b id="dayRev">¥0</b></div>
-    <div class="row"><span>售出成本</span><b id="dayCost">-¥0</b></div>
-    <div class="row"><span>人力开支</span><b id="dayWage">-¥0</b></div>
-    <div class="row"><span>租金</span><b id="dayRent" class="rent">-¥0</b></div>
-    <div class="row"><span>顾客成交 · 走单</span><b><span id="custDone">0</span> · <span id="custLost">0</span></b></div>
+    <div class="row"><span data-i18n="row_rev">Revenue</span><b id="dayRev">¥0</b></div>
+    <div class="row"><span data-i18n="row_cost">Cost of goods</span><b id="dayCost">-¥0</b></div>
+    <div class="row"><span data-i18n="row_wage">Wages</span><b id="dayWage">-¥0</b></div>
+    <div class="row"><span data-i18n="row_rent">Rent</span><b id="dayRent" class="rent">-¥0</b></div>
+    <div class="row"><span data-i18n="row_sales">Sold · Walkouts</span><b><span id="custDone">0</span> · <span id="custLost">0</span></b></div>
     <div class="goal" id="goal">
-      <div class="gtop"><span id="goalTxt">目标 ¥300</span><span id="goalNow">资产 ¥0</span></div>
+      <div class="gtop"><span id="goalTxt">Goal ¥300</span><span id="goalNow">Net worth ¥0</span></div>
       <div class="gbar"><div class="gfill" id="goalFill"></div></div>
     </div>
-    <div class="upgttl" id="upgttl">利润再投资 · 升级店铺</div>
-    <div class="upg" id="upg">
-      <button class="ub" id="ubPromo">
-        <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="#3fb6ac"/><path d="M16 8a5 5 0 0 1 0 8M18.5 5.5a8.5 8.5 0 0 1 0 13" stroke="#3fb6ac" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
-        <span class="un">招客</span><span class="lv"></span><span class="uc"></span>
-      </button>
-      <button class="ub" id="ubPrice">
-        <svg viewBox="0 0 24 24"><path d="M5 18l5-6 4 3 5-8" stroke="#3fb6ac" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 7h4v4" stroke="#3fb6ac" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span class="un">加价</span><span class="lv"></span><span class="uc"></span>
-      </button>
-      <button class="ub" id="ubStock">
-        <svg viewBox="0 0 24 24"><rect x="4" y="13" width="7" height="7" rx="1" fill="#3fb6ac"/><rect x="13" y="13" width="7" height="7" rx="1" fill="#3fb6ac"/><rect x="8.5" y="4" width="7" height="7" rx="1" fill="#3fb6ac"/></svg>
-        <span class="un">理货</span><span class="lv"></span><span class="uc"></span>
-      </button>
-    </div>
-    <div class="hi" id="hiScore">资产 ¥0 · 历史最高 ¥0</div>
-    <button id="replay">明天继续</button>
-    <button id="lbBtn" class="lblink">查看排行榜</button>
+    <div class="hi" id="hiScore"></div>
+    <button id="replay" data-i18n="btn_next">Next Day</button>
+    <button id="lbBtn" class="lblink" data-i18n="btn_lb">Leaderboard</button>
   </div>
 </div>
 <div id="lb">
   <div class="lbcard">
-    <div class="lbhd">资产排行榜<span class="lbsub">历史最高资产</span></div>
+    <div class="lbhd"><span data-i18n="lb_title">NET WORTH</span><span class="lbsub" data-i18n="lb_sub">best net worth</span></div>
     <div class="lbbody" id="lbBody"></div>
-    <button id="lbClose" class="lblink">关闭</button>
+    <button id="lbClose" class="lblink" data-i18n="btn_close">Close</button>
   </div>
 </div>
 <div id="opening">
-  <div class="otitle">今天主打什么<small>选一个品类 · 顾客更想买 · 卖得更贵</small></div>
+  <div class="brandmark"><span class="b1">SHELF</span><span class="dot">·</span><span class="b2">IT</span></div>
+  <div class="otitle"><span data-i18n="open_title">TODAY’S HEADLINER</span><small data-i18n="open_sub">pick a category · shoppers crave it · sells for more</small></div>
+  <div class="opicks"></div>
+</div>
+<div id="unlock">
+  <div class="brandmark"><span class="b1">SHELF</span><span class="dot">·</span><span class="b2">IT</span></div>
+  <div class="otitle"><span data-i18n="unlock_title">FIT OUT YOUR BRANCH</span><small id="unlockSub">pick one to install</small></div>
   <div class="opicks"></div>
 </div>
 <div id="headliner">
   <svg class="star" viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.7 1.4 6.8L12 17.8 5.9 20.5l1.4-6.8L2.2 9l6.9-.7z" fill="#f3b53d" stroke="#c4880f" stroke-width="1.2" stroke-linejoin="round"/></svg>
   <div class="hsil"></div>
-  <span class="htxt">主打</span>
+  <span class="htxt" data-i18n="headliner">Headliner</span>
 </div>
 <button id="hire">
   <span class="who"></span>
-  <span class="lbl">雇店员 <span class="cost">¥30</span></span>
+  <span class="lbl"><span data-i18n="hire">Hire clerk</span> <span class="cost">¥30</span></span>
 </button>
 
 <script type="importmap">
@@ -353,6 +358,55 @@ import { CHARACTERS } from './builders/characters.js';
 import { PROPS } from './builders/props.js';
 import { PLANTS } from './builders/plants.js';
 import { SCENE } from './builders/scene.js';
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  i18n — ENGLISH by default (platform is US/English-market); Chinese only when
+//  the device locale is Chinese, or the player overrides it. Decorative store
+//  art (sign/posters) is English-only and not localised.
+// ─────────────────────────────────────────────────────────────────────────────
+const I18N = {
+  en: {
+    catpanel_title:'WHAT DOES THIS SHELF SELL?', clock_cap:'OPEN', day_phase_open:'Open', day_phase_pre:'Opening soon',
+    profit_head:'TODAY’S PROFIT', row_rev:'Revenue', row_cost:'Cost of goods', row_wage:'Wages', row_rent:'Rent', row_sales:'Sold · Walkouts',
+    btn_next:'Next Day', btn_replay:'Restart', btn_lb:'Leaderboard', btn_close:'Close', hire:'Hire clerk',
+    lb_title:'NET WORTH', lb_sub:'best net worth', lb_player:'Player', lb_you:'YOU', lb_loading:'Loading…', lb_empty:'No ranks yet · survive today to make the board',
+    open_title:'TODAY’S HEADLINER', open_sub:'pick a category · shoppers crave it · sells for more', headliner:'Headliner',
+    head_liquidation:'LIQUIDATION', goals_all:'ALL GOALS CLEARED', goal_lbl:'Goal', net:'Net worth', hi:'Best',
+    combo:'Combo ×{n}', hired:'Hired! -¥{n}', headliner_tag:'Headliner · {name}',
+    restock_pop:'Restock!', switch_to:'Now: {name}',
+    cust_left:'left…', cust_got:'Got it!', stamp_bankrupt:'BANKRUPT · DAY {n}', stamp_hit:'HIT ¥{n}',
+    over_reached:'Reached DAY {d} · best ¥{n}', over_best:'best ¥{n}',
+    stamp_branch:'NEW BRANCH', branch_head:'GOAL CLEARED!', branch_sub:'You hit ¥{n} — time to open store #{lvl}', branch_btn:'Open Store #{lvl}',
+    unlock_title:'FIT OUT YOUR BRANCH', unlock_pick:'Add one to store #{lvl}',
+    eq_shelf:'Shelf', eq_fridge:'Fridge', eq_coffee:'Coffee Bar', eq_rack:'Snack Rack', eq_have:'have {n}', eq_added:'+1 {name}',
+  },
+  zh: {
+    catpanel_title:'这个货架卖什么', clock_cap:'营业', day_phase_open:'营业中', day_phase_pre:'准备开门',
+    profit_head:'今日净利', row_rev:'营业额', row_cost:'售出成本', row_wage:'人力开支', row_rent:'租金', row_sales:'成交 · 走单',
+    btn_next:'明天继续', btn_replay:'重开', btn_lb:'查看排行榜', btn_close:'关闭', hire:'雇店员',
+    lb_title:'资产排行榜', lb_sub:'历史最高资产', lb_player:'玩家', lb_you:'你', lb_loading:'载入中…', lb_empty:'还没有排名 · 撑过今天上榜',
+    open_title:'今天主打什么', open_sub:'选一个品类 · 顾客更想买 · 卖得更贵', headliner:'主打',
+    head_liquidation:'清算', goals_all:'目标全达成', goal_lbl:'目标', net:'资产', hi:'历史最高',
+    combo:'连击 ×{n}', hired:'雇! -¥{n}', headliner_tag:'主打 · {name}',
+    restock_pop:'催货!', switch_to:'改卖 {name}',
+    cust_left:'走了…', cust_got:'拿到!', stamp_bankrupt:'破产 · DAY {n}', stamp_hit:'达成 ¥{n}',
+    over_reached:'撑到 DAY {d} · 历史最高 ¥{n}', over_best:'历史最高 ¥{n}',
+    stamp_branch:'开新分店', branch_head:'目标达成!', branch_sub:'资产突破 ¥{n} — 开第 {lvl} 家分店', branch_btn:'开第 {lvl} 家店',
+    unlock_title:'布置你的分店', unlock_pick:'给第 {lvl} 家店添置一件',
+    eq_shelf:'货架', eq_fridge:'冷柜', eq_coffee:'咖啡吧', eq_rack:'零食架', eq_have:'已有 {n}', eq_added:'+1 {name}',
+  },
+};
+const LOCALE = (() => {
+  const o = localStorage.getItem('shelfit_locale'); if(o==='en'||o==='zh') return o;
+  return (navigator.language||'').toLowerCase().startsWith('zh') ? 'zh' : 'en';
+})();
+function t(key, vars){
+  let s = (I18N[LOCALE] && I18N[LOCALE][key]) ?? I18N.en[key] ?? key;
+  if(vars) for(const k in vars) s = s.split('{'+k+'}').join(vars[k]);
+  return s;
+}
+document.documentElement.lang = LOCALE;
+document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
 
 // ── stage (locked premium look; we drive our own game loop) ──
 const stage = createStage(document.getElementById('c'),
@@ -454,23 +508,24 @@ store.add(box(2*DOOR_HALF+0.10, 0.30, 0.10, P.accent, 0, 2.55, -HZ+WT/2+0.06)); 
 // margin (price-cost) varies by family so the player optimizes the product mix against the crowd.
 const CATS = [
   // 干货常温 — islands + wall shelves (low cost, steady margin)
-  { id:'biscuit',  name:'饼干',   col:P.coral,    kind:3, cost:3, price:8  },
-  { id:'snack',    name:'零食',   col:P.orange,   kind:2, cost:3, price:9  },
-  { id:'can',      name:'罐头',   col:P.red,      kind:1, cost:4, price:11 },
-  { id:'noodle',   name:'泡面',   col:P.gold,     kind:3, cost:2, price:7  },
-  { id:'sundry',   name:'日杂',   col:P.green,    kind:3, cost:3, price:10 },   // steady mid margin
-  { id:'coffee',   name:'咖啡',   col:P.woodD,    kind:1, cost:4, price:13 },   // high margin (white-collar craving)
-  { id:'liquor',   name:'酒水',   col:P.purple,   kind:0, cost:6, price:19 },   // premium: highest margin, narrow crowd
+  { id:'biscuit',  name:'饼干',   en:'Biscuits',  col:P.coral,    kind:3, cost:3, price:8  },
+  { id:'snack',    name:'零食',   en:'Snacks',    col:P.orange,   kind:2, cost:3, price:9  },
+  { id:'can',      name:'罐头',   en:'Cans',      col:P.red,      kind:1, cost:4, price:11 },
+  { id:'noodle',   name:'泡面',   en:'Noodles',   col:P.gold,     kind:3, cost:2, price:7  },
+  { id:'sundry',   name:'日杂',   en:'Sundries',  col:P.green,    kind:3, cost:3, price:10 },   // steady mid margin
+  { id:'coffee',   name:'咖啡',   en:'Coffee',    col:P.woodD,    kind:1, cost:4, price:13 },   // high margin (white-collar craving)
+  { id:'liquor',   name:'酒水',   en:'Liquor',    col:P.purple,   kind:0, cost:6, price:19 },   // premium: highest margin, narrow crowd
   // 生鲜 — produce bins (high margin)
-  { id:'fruit',    name:'水果',   col:P.apple,    kind:4, cost:5, price:16 },
-  { id:'veg',      name:'蔬菜',   col:P.leafL,    kind:7, cost:4, price:14 },
+  { id:'fruit',    name:'水果',   en:'Fruit',     col:P.apple,    kind:4, cost:5, price:16 },
+  { id:'veg',      name:'蔬菜',   en:'Veg',       col:P.leafL,    kind:7, cost:4, price:14 },
   // 冷藏冷冻 — glass-door coolers + chest freezer (mid-high margin)
-  { id:'drink',    name:'饮料',   col:P.blue,     kind:0, cost:3, price:9  },
-  { id:'cold',     name:'冷饮',   col:P.coldGlow, kind:8, cost:4, price:12 },
-  { id:'icecream', name:'冰淇淋', col:P.petal,    kind:5, cost:5, price:18 },
-  { id:'dairy',    name:'乳品',   col:P.cream,    kind:6, cost:4, price:14 },
+  { id:'drink',    name:'饮料',   en:'Drinks',    col:P.blue,     kind:0, cost:3, price:9  },
+  { id:'cold',     name:'冷饮',   en:'Soda',      col:P.coldGlow, kind:8, cost:4, price:12 },
+  { id:'icecream', name:'冰淇淋', en:'Ice Cream', col:P.petal,    kind:5, cost:5, price:18 },
+  { id:'dairy',    name:'乳品',   en:'Dairy',     col:P.cream,    kind:6, cost:4, price:14 },
 ];
 const CAT = Object.fromEntries(CATS.map(c=>[c.id,c]));
+const catName = c => (LOCALE==='zh' ? c.name : c.en);   // category label in the active locale
 // each fixture type only accepts (and customers only buy from) the categories in its family
 const FAM_AMBIENT = ['biscuit','snack','can','noodle','sundry','coffee','liquor'];   // dry-goods gondolas: islands + wall runs
 const FAM_FRESH   = ['fruit','veg'];                      // open produce bins
@@ -498,10 +553,11 @@ const ARCH = {
 // `frac` = share of the day; `gap` = seconds between spawns (smaller = busier);
 // `mix` = weighted archetype blend, giving each period a distinct crowd.
 const PERIODS = [
-  { id:'morning', name:'早高峰', frac:0.34, gap:2.5, mix:{businessman:3, officeWoman:3, oldman:2, granny:2, student:1, blonde:1, fitWoman:2, chef:1} },
-  { id:'noon',    name:'午市',   frac:0.33, gap:1.5, mix:{businessman:2, officeWoman:2, darkWoman:2, blonde:2, granny:1, oldman:1, student:1, kid:1, chef:2, bigGuy:1, fitWoman:1} },
-  { id:'school',  name:'放学',   frac:0.33, gap:1.4, mix:{student:4, kid:4, blonde:1, darkWoman:1, officeWoman:1, teen:4, bigGuy:2} },
+  { id:'morning', name:'早高峰', en:'Morning Rush', frac:0.34, gap:2.5, mix:{businessman:3, officeWoman:3, oldman:2, granny:2, student:1, blonde:1, fitWoman:2, chef:1} },
+  { id:'noon',    name:'午市',   en:'Midday',       frac:0.33, gap:1.5, mix:{businessman:2, officeWoman:2, darkWoman:2, blonde:2, granny:1, oldman:1, student:1, kid:1, chef:2, bigGuy:1, fitWoman:1} },
+  { id:'school',  name:'放学',   en:'After School', frac:0.33, gap:1.4, mix:{student:4, kid:4, blonde:1, darkWoman:1, officeWoman:1, teen:4, bigGuy:2} },
 ];
+const periodName = p => (LOCALE==='zh' ? p.name : p.en);   // time-of-day label in the active locale
 
 // chunky flat product silhouette, shared by DOM (tray chips + wish bubbles + drag ghost) and 3D slot ghosts.
 // One render per (kind,col) → cached. No text, color-coded, readable at 30px.
@@ -733,8 +789,7 @@ function buildIsland(cx, cz){
   gondolas.push(gondola);
   return gondola;
 }
-buildIsland(0, -1.7);
-buildIsland(0,  1.7);
+// (island placement moved into buildStore — see EQUIP plan below)
 
 // world-space basis vectors for a fixture rotated rotY about Y (local +z = front into the store, local +x = along the run)
 function frontVec(rotY){ return new THREE.Vector3(Math.sin(rotY), 0, Math.cos(rotY)); }
@@ -786,32 +841,50 @@ function buildWallRun(cx, cz, rotY, len=4.0){
   contactShadow(W+1.0, D+1.2, cx, cz);
   return g;
 }
-buildWallRun(-2.6,  HZ-0.45,  Math.PI, 4.4);          // south wall (faces -z)
-buildWallRun( 2.6,  HZ-0.45,  Math.PI, 4.4);
-buildWallRun( HX-0.45,  1.8, -Math.PI/2, 4.0);        // east wall (faces -x)
-buildWallRun(-4.2, -HZ+0.45,  0, 3.4);                // north wall, left of door (faces +z)
+// (wall-run placement moved into buildStore — see EQUIP plan below)
 
+// a stocked shelf holds SHELF_CAP units; each shopper takes ONE (not the whole shelf),
+// so a fixture is picked over in stages and only needs a clerk once it runs dry.
+const SHELF_CAP = 5;
 function fillSlot(s, catId){
   while(s.holder.children.length) s.holder.remove(s.holder.children[0]);
+  const items=[];                                       // every product mesh, gathered flat so depletion can thin them out
+  const addF=(f)=>{ s.holder.add(f); for(const p of f.children) items.push(p); };
   if(s.cooler){
     // one compact facing PER wire shelf (dy aligned to the 3 shelves) — fills the cabinet, fits the narrow glass → no clipping
-    [0.06, 0.58, 1.06].forEach(dy=>{ const f = makeFacing(catId, 2, 0.42, 0.78); f.position.y = dy; s.holder.add(f); });
+    [0.06, 0.58, 1.06].forEach(dy=>{ const f = makeFacing(catId, 2, 0.42, 0.78); f.position.y = dy; addF(f); });
   } else if(s.chest){
     // goods fill the well and crest the rim (tall items +0.24, short items +0.06) → reads as a packed freezer, not a half-empty bin
-    [-0.18, 0.18].forEach(dz=>{ const f = makeFacing(catId, 3, 0.56, 0.78); f.position.z = dz; s.holder.add(f); });
+    [-0.18, 0.18].forEach(dz=>{ const f = makeFacing(catId, 3, 0.56, 0.78); f.position.z = dz; addF(f); });
   } else if(s.bin){
-    s.holder.add(makeFacing(catId, 3, 0.52, 0.80));   // fits the open crate footprint
+    addF(makeFacing(catId, 3, 0.52, 0.80));   // fits the open crate footprint
   } else if(s.tiers){
     // multi-tier shelves (island side or wall run) — one tap stocks every tier with the same category
     for(const t of s.tiers){
       const f = makeFacing(catId, 4, 2.6, 1.22);
       f.position.copy(t.pos); f.rotation.x = t.tilt;
-      s.holder.add(f);
+      addF(f);
     }
   }
-  s.filled = true; s.cat = catId; s.holder.visible = true; popScale(s.holder);
+  // shuffle so the gaps left by sold units scatter across the shelf (reads as "picked over", not sliced off one end)
+  for(let i=items.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; const t=items[i]; items[i]=items[j]; items[j]=t; }
+  s.items = items; s.stock = SHELF_CAP;
+  s.filled = true; s.cat = catId; s.holder.visible = true; applyStockVisual(s); popScale(s.holder);
 }
-function emptySlot(s){ s.filled=false; s.cat=null; s.holder.visible=false; s.claim=null; }
+// thin the visible products down to match remaining stock (empty = hidden holder)
+function applyStockVisual(s){
+  if(!s.items) return;
+  let vis = Math.ceil(s.items.length * (s.stock/SHELF_CAP));
+  if(s.stock<=0) vis=0; else if(vis<1) vis=1;
+  for(let i=0;i<s.items.length;i++) s.items[i].visible = (i<vis);
+}
+// a shopper grabs ONE unit; the shelf only empties (and frees up for a clerk) once the last unit goes
+function takeOne(s){
+  s.stock = Math.max(0, (s.stock|0) - 1);
+  if(s.stock<=0){ emptySlot(s); }
+  else { applyStockVisual(s); s.claim=null; }           // still stocked — release the claim so the next shopper can come
+}
+function emptySlot(s){ s.filled=false; s.cat=null; s.holder.visible=false; s.claim=null; s.stock=0; }
 
 // tidy bonus only fires on multi-slot gondolas (islands) where the player can "make the whole island one category"
 function gondolaTidy(gd){
@@ -998,7 +1071,7 @@ function impulseRack(){
   g.traverse(o=>{ if(o.isMesh){o.castShadow=true;o.receiveShadow=true;} });
   return g;
 }
-place(impulseRack, 4.2, -HZ+1.0, 0, 1.0, [0.28,0.20]);
+// (impulse-rack placement moved into buildStore — see EQUIP plan below)
 
 // ── coffee vending machine: a tall floor unit against the wall beside the register (north-east corner) ──
 function coffeeMachine(){
@@ -1026,7 +1099,7 @@ function coffeeMachine(){
   g.traverse(o=>{ if(o.isMesh){o.castShadow=true;o.receiveShadow=true;} });
   return g;
 }
-place(coffeeMachine, HX-0.58, -2.8, -Math.PI/2, 1.0, [0.3,0.38]);   // beside the register, pulled clear of the EAST wall so no part is coplanar with / penetrating the frosted wall plane (that coplanarity, not glass, was the flicker)
+// (coffee-machine placement moved into buildStore — see EQUIP plan below)
 
 // ── signage + wall posters: canvas-textured flat panels mounted on the two solid (far) walls ──
 function roundRectPath(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
@@ -1038,6 +1111,8 @@ function canvasTex(draw, w, h){
 // flat panel: +z face carries the texture, sides are warm panel grey; built facing +z then rotated to a wall
 // materials are transparent-capable so wall-mounted panels can fade in lockstep with their (frosted near-camera) wall
 const wallPanels = [];   // {mats:[side,face], nx, nz} — texPanels mounted on a wall, fade with it
+const posters = [];      // {mesh, face, variant} — wall posters whose graphic tracks the player's unlock order (#66)
+const posterTexCache = {};
 function texPanel(tex, w, h, emInt=0.16){
   const side = new THREE.MeshStandardMaterial({color:P.panelD, roughness:0.92, metalness:0, flatShading:true, transparent:true, opacity:1});
   const face = new THREE.MeshStandardMaterial({map:tex, emissive:new THREE.Color(0xffffff), emissiveMap:tex, emissiveIntensity:emInt, roughness:0.9, metalness:0, flatShading:true, transparent:true, opacity:1});
@@ -1050,7 +1125,7 @@ const signTex = canvasTex((ctx,w,h)=>{
   ctx.lineWidth=11; ctx.strokeStyle='#3fb6ac'; roundRectPath(ctx,17,17,w-34,h-34,14); ctx.stroke();
   ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillStyle='#2c8079'; ctx.font="800 80px -apple-system,'PingFang SC',sans-serif"; ctx.fillText('SHELF · IT', w/2, h*0.40);
-  ctx.fillStyle='#9a8f86'; ctx.font="800 30px -apple-system,'PingFang SC',sans-serif"; ctx.fillText('陈 列 便 利 店', w/2, h*0.78);
+  ctx.fillStyle='#9a8f86'; ctx.font="800 28px -apple-system,'PingFang SC',sans-serif"; ctx.fillText('OPEN 24 HOURS', w/2, h*0.78);
 }, 512, 168);
 const sign = texPanel(signTex, 2.6, 0.80, 0.26); sign.position.set(0, 3.05, -HZ+0.30); store.add(sign);
 wallPanels.push({ mats: sign.userData.panelMats, nx:0, nz:-1 });   // sign hangs on the north wall
@@ -1064,13 +1139,13 @@ function posterTex(variant){
     if(variant===0){              // SALE — ORIGINAL teal design
       ctx.fillStyle='#3fb6ac'; ctx.fillRect(0,0,w,h);
       ctx.fillStyle='#f3ead4'; ctx.font="800 132px sans-serif"; ctx.fillText('SALE', cx, h*0.40);
-      ctx.fillStyle='#fff'; ctx.font="800 64px sans-serif"; ctx.fillText('限 时 特 价', cx, h*0.72);
+      ctx.fillStyle='#fff'; ctx.font="800 56px sans-serif"; ctx.fillText('LIMITED TIME', cx, h*0.72);
       ctx.strokeStyle='rgba(40,30,22,0.14)'; ctx.lineWidth=10; ctx.strokeRect(6,6,w-12,h-12);
       return;
     }
-    const bg = variant===1?'#f3ead4':'#7fd06a';
+    const bg = variant===1?'#f3ead4':(variant===2?'#7fd06a':'#f4b63f');
     ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
-    ctx.fillStyle = variant===1?'rgba(124,82,48,0.14)':'rgba(58,138,50,0.20)';
+    ctx.fillStyle = variant===1?'rgba(124,82,48,0.14)':(variant===2?'rgba(58,138,50,0.20)':'rgba(170,104,18,0.18)');
     for(let y=0;y<h;y+=26) for(let x=((y/26)%2?13:0);x<w;x+=26){ ctx.beginPath(); ctx.arc(x,y,4.6,0,7); ctx.fill(); }   // halftone dots
     const bold=(txt,y,size,fill)=>{ ctx.font=`900 ${size}px 'Arial Black','Impact',sans-serif`;
       ctx.lineWidth=size*0.17; ctx.strokeStyle=INK; ctx.strokeText(txt,cx,y); ctx.fillStyle=fill; ctx.fillText(txt,cx,y); };
@@ -1082,30 +1157,53 @@ function posterTex(variant){
       ctx.lineWidth=5; ctx.strokeStyle=INK;
       for(let s=-1;s<=1;s++){ const sx=cx+s*32; ctx.beginPath(); ctx.moveTo(sx,h*0.21); ctx.quadraticCurveTo(sx+13,h*0.155,sx,h*0.10); ctx.stroke(); }
       bold('COFFEE',h*0.80,60,'#2c8079');
-    } else {                      // FRESH — fruit
+    } else if(variant===2){       // FRESH — fruit
       ctx.fillStyle='#e0483b'; ctx.beginPath(); ctx.arc(w*0.40,h*0.40,h*0.15,0,7); ctx.fill(); ctx.lineWidth=6; ctx.strokeStyle=INK; ctx.stroke();
       ctx.fillStyle='#ffb13b'; ctx.beginPath(); ctx.arc(w*0.63,h*0.46,h*0.12,0,7); ctx.fill(); ctx.stroke();
       ctx.strokeStyle='#3a8a32'; ctx.lineWidth=11; ctx.beginPath(); ctx.moveTo(w*0.40,h*0.26); ctx.lineTo(w*0.44,h*0.17); ctx.stroke();
       bold('FRESH',h*0.80,70,'#2f7a2a');
+    } else {                      // SNACKS — chip bag (variant 3, the impulse rack)
+      ctx.save();
+      ctx.fillStyle='#e0603f'; ctx.strokeStyle=INK; ctx.lineWidth=7;
+      roundRectPath(ctx, w*0.34, h*0.24, w*0.32, h*0.40, 14); ctx.fill(); ctx.stroke();
+      ctx.fillStyle='#f3ead4';                                  // shiny diagonal band across the bag
+      ctx.beginPath(); ctx.moveTo(w*0.36,h*0.40); ctx.lineTo(w*0.64,h*0.32); ctx.lineTo(w*0.64,h*0.40); ctx.lineTo(w*0.36,h*0.48); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='#e0603f';                                  // crimped top + bottom seams (little triangles)
+      for(let i=0;i<5;i++){ const tx=w*0.34+ (w*0.32)*(i/4);
+        ctx.beginPath(); ctx.moveTo(tx,h*0.24); ctx.lineTo(tx+w*0.04,h*0.205); ctx.lineTo(tx+w*0.08,h*0.24); ctx.closePath(); ctx.stroke(); }
+      ctx.restore();
+      bold('SNACKS',h*0.80,56,'#c24a28');
     }
     ctx.strokeStyle=INK; ctx.lineWidth=16; ctx.strokeRect(8,8,w-16,h-16);   // thick comic border
   }, 360, 480);
 }
-function addPoster(variant, x, y, z, ry, nx, nz){ const p=texPanel(posterTex(variant), 1.12, 1.49); p.position.set(x,y,z); p.rotation.y=ry; store.add(p); wallPanels.push({ mats:p.userData.panelMats, nx, nz }); }
+function posterTexFor(v){ return posterTexCache[v] || (posterTexCache[v] = posterTex(v)); }
+function addPoster(variant, x, y, z, ry, nx, nz){
+  const p=texPanel(posterTexFor(variant), 1.12, 1.49); p.position.set(x,y,z); p.rotation.y=ry; store.add(p);
+  wallPanels.push({ mats:p.userData.panelMats, nx, nz });
+  posters.push({ mesh:p, face:p.userData.panelMats[1], variant });
+}
 addPoster(0,  4.6, 2.30, -HZ+0.16, 0, 0, -1);          // north wall, right of door (above the checkout)
 addPoster(2, -3.95, 2.55, -HZ+0.16, 0, 0, -1);          // north wall, left of door (above the wall-run shelf)
 addPoster(1, -HX+0.16, 2.45, -1.4, Math.PI/2, -1, 0);   // west wall (above the cooler row), faces +x
 addPoster(1, HX-0.16, 2.45, -2.8, -Math.PI/2, 1, 0);   // east wall above the coffee machine — its matching coffee poster, faces -x
+// #66 — the wall posters advertise whatever the player has fitted out, in the ORDER they unlocked it.
+// A flagship (everything owned, no unlock history) keeps the hand-placed default colourway above.
+const POSTER_DEFAULT = posters.map(p=>p.variant);          // [0,2,1,1]
+const FAM_VARIANT = { shelf:0, fridge:2, coffee:1, rack:3 };   // dry-goods→SALE, cold→FRESH, coffee→COFFEE, rack→SNACKS
+function setPosterVariant(p, v){
+  if(p.variant===v) return;
+  p.variant=v; const tex=posterTexFor(v);
+  p.face.map=tex; p.face.emissiveMap=tex; p.face.needsUpdate=true;
+}
+function refreshPosters(){
+  for(let i=0;i<posters.length;i++){
+    const v = unlockLog.length ? FAM_VARIANT[ unlockLog[i % unlockLog.length] ] : POSTER_DEFAULT[i];
+    setPosterVariant(posters[i], v);
+  }
+}
 
-// FREEZER ROW — packed glass-door coolers + 2 open chest freezers along the WEST wall (frozen family, all playable)
-[-1.65, -0.55, 0.55, 1.65].forEach(z => buildCooler(-6.0, z, Math.PI/2));
-buildChestFreezer(-6.05, -3.5, Math.PI/2);
-buildChestFreezer(-6.05,  3.5, Math.PI/2);
-// PRODUCE BINS — mid-floor fresh crates tucked in the z=±1.6 dead bands (fruit family, playable, approached from the corridor)
-buildProduceBin( 3.1,  1.6);
-buildProduceBin( 3.1, -1.6);
-buildProduceBin(-3.1,  1.6);
-buildProduceBin(-3.1, -1.6);
+// (cooler / chest-freezer / produce-bin placement moved into buildStore — see EQUIP plan below)
 // life: plants in the two SOUTH corners (clear of every fixture → no clipping), trash + baskets near the entrance
 place(PLANTS.pottedPlant,  5.9, HZ-0.5, 0, 1.1);
 place(PLANTS.pottedPlant, -5.9, HZ-0.5, 0, 1.1);
@@ -1113,8 +1211,9 @@ place(trashBin, 5.8, -HZ+0.9, 0, 1.0, [0.24,0.24]);
 place(PROPS.basket, 5.4, -HZ+1.1, 0.4, 1.0);
 place(PROPS.basket, 5.8, -HZ+1.4, -0.3, 1.0);
 // aisle signs at the island ends (fixture variety + Parastore wayfinding)
-place(PROPS.aisleSign,  2.05, -1.7, 0, 1.0, [0.16,0.16]);
-place(PROPS.aisleSign, -2.05,  1.7, 0, 1.0, [0.16,0.16]);
+// no collision shell — clerks were getting wedged on these between the middle counters; keep just the ground shadow
+place(PROPS.aisleSign,  2.05, -1.7, 0, 1.0); contactShadow(1.2, 1.2,  2.05, -1.7);
+place(PROPS.aisleSign, -2.05,  1.7, 0, 1.0); contactShadow(1.2, 1.2, -2.05,  1.7);
 
 // quick pop-scale tween with back-overshoot (juicy placement/restock)
 const tweens = [];
@@ -1127,8 +1226,81 @@ function updateTweens(dt){
     if(k>=1){ w.obj.scale.setScalar(1); tweens.splice(i,1); } }
 }
 
-// open the store fully stocked: every shelf gets a resident category from its family, then is filled
-for(const s of slots){ s.assignedCat = s.fam[(Math.random()*s.fam.length)|0]; fillSlot(s, s.assignedCat); }
+// ─── EQUIPMENT PLAN (#59 data model) ─────────────────────────────────────────
+// Every stockable / revenue fixture is one ordered "unit". buildStore() lays a
+// level's worth out; clearEquip() tears the whole set down so the next branch can
+// rebuild from scratch. The four families map to the unlock-card upgrades (#60/#61):
+//   shelf  = dry-goods gondolas (islands + wall runs, FAM_AMBIENT)
+//   fridge = glass coolers + chest freezers + produce bins (cold / fresh)
+//   coffee = coffee vending machine
+//   rack   = checkout-side impulse rack
+const EQUIP = {
+  shelf: [
+    () => buildIsland(0, -1.7),
+    () => buildIsland(0,  1.7),
+    () => buildWallRun(-2.6, HZ-0.45, Math.PI, 4.4),
+    () => buildWallRun( 2.6, HZ-0.45, Math.PI, 4.4),
+    () => buildWallRun( HX-0.45, 1.8, -Math.PI/2, 4.0),
+    () => buildWallRun(-4.2, -HZ+0.45, 0, 3.4),
+  ],
+  fridge: [
+    () => buildCooler(-6.0, -1.65, Math.PI/2),
+    () => buildCooler(-6.0, -0.55, Math.PI/2),
+    () => buildCooler(-6.0,  0.55, Math.PI/2),
+    () => buildCooler(-6.0,  1.65, Math.PI/2),
+    () => buildChestFreezer(-6.05, -3.5, Math.PI/2),
+    () => buildChestFreezer(-6.05,  3.5, Math.PI/2),
+    () => buildProduceBin( 3.1,  1.6),
+    () => buildProduceBin( 3.1, -1.6),
+    () => buildProduceBin(-3.1,  1.6),
+    () => buildProduceBin(-3.1, -1.6),
+  ],
+  coffee: [
+    () => place(coffeeMachine, HX-0.58, -2.8, -Math.PI/2, 1.0, [0.3,0.38]),
+  ],
+  rack: [
+    () => place(impulseRack, 4.2, -HZ+1.0, 0, 1.0, [0.28,0.20]),
+  ],
+};
+const EQUIP_FAMS = ['shelf','fridge','coffee','rack'];
+// how many units of each family a full L1 flagship shows (also each family's ceiling)
+const EQUIP_FULL = {}; EQUIP_FAMS.forEach(f => EQUIP_FULL[f] = EQUIP[f].length);
+// a fresh branch (L2+) opens nearly empty — two shelves to trade, nothing else. The
+// unlock card grows it one fixture at a time. `owned` accumulates across every branch.
+const L2_BASE = { shelf:2, fridge:0, coffee:0, rack:0 };
+let owned = Object.assign({}, EQUIP_FULL);   // L1 flagship = full; reset to L2_BASE on the first branch
+let unlockLog = [];                          // (#66) families in the order the player fitted them out → drives the wall posters
+let branchPending = false;                   // set when a goal clears → next day opens the unlock card
+
+// teardown boundary: store.children / OBSTACLES up to here are structural + decoration (never torn down)
+const BASE_CHILD = store.children.length;
+const BASE_OBST  = OBSTACLES.length;
+
+function clearEquip(){
+  for(let i=store.children.length-1; i>=BASE_CHILD; i--){
+    const o = store.children[i];
+    o.traverse(n=>{ if(n.isMesh){ n.geometry && n.geometry.dispose && n.geometry.dispose();
+      if(n.material){ (Array.isArray(n.material)?n.material:[n.material]).forEach(m=>m && m.dispose && m.dispose()); } } });
+    store.remove(o);
+  }
+  OBSTACLES.length = BASE_OBST;
+  gondolas.length = 0; slots.length = 0; hitMeshes.length = 0;
+}
+function placeEquipFamily(fam, count){
+  const plan = EQUIP[fam]; const n = Math.min(count|0, plan.length);
+  for(let i=0;i<n;i++) plan[i]();
+}
+// build the store for a level. L1 = the full fixed flagship (onboarding / demo);
+// L2+ = whatever the player has unlocked (`owned`), so a new branch starts sparse.
+function buildStore(lvl){
+  clearEquip();
+  const counts = (lvl<=1) ? EQUIP_FULL : owned;
+  EQUIP_FAMS.forEach(f => placeEquipFamily(f, counts[f]||0));
+  // open fully stocked: every shelf gets a resident category from its family, then is filled
+  for(const s of slots){ s.assignedCat = s.fam[(Math.random()*s.fam.length)|0]; fillSlot(s, s.assignedCat); }
+  refreshPosters();   // (#66) re-skin the wall posters to match what's fitted out, in unlock order
+}
+buildStore(1);   // initial flagship; restore/level-change rebuilds at the real level
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  CUSTOMERS — want a category, navigate (with avoidance) to a matching slot
@@ -1138,6 +1310,9 @@ const DOOR = new THREE.Vector3(0, 0, -HZ + 1.0);   // entrance is the north-wall
 const DOOR_OUT = new THREE.Vector3(0, 0, -HZ - 0.6);
 const SIDE_E = 4.5, SIDE_W = -4.5;           // the two side travel corridors
 const JUNC_Z = -3.9;                         // front cross-corridor (clear, in front of the islands)
+const ISLE_HALF = 2.2;                       // |x| beyond which the centre-column island blockage is clear
+// the two centre islands split the centre column into 3 clear bands (north / mid-aisle / south)
+function bandOf(z){ return z < -1.05 ? 0 : (z > 1.05 ? 2 : 1); }
 const customers = [];
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
 
@@ -1329,6 +1504,16 @@ function routeToStand(c, stand){
     c.path = [ {x:LX, z:JUNC_Z}, {x:SIDE, z:JUNC_Z}, {x:SIDE, z:sz}, {x:sx, z:sz} ];
   }
 }
+// clerks roam the floor (not funnelled through the door like shoppers), so they route
+// position-aware: straight when target is in the same band or on the same clear flank,
+// otherwise a short hop around the island ends via the nearer side corridor.
+function routeClerk(k, stand){
+  const sx=stand.x, sz=stand.z, cx=k.g.position.x, cz=k.g.position.z;
+  const sameSideClear = Math.abs(cx)>ISLE_HALF && Math.abs(sx)>ISLE_HALF && Math.sign(cx)===Math.sign(sx);
+  if(bandOf(cz)===bandOf(sz) || sameSideClear){ k.path=[{x:sx, z:sz}]; return; }
+  const SIDE = cx>=0 ? SIDE_E : SIDE_W;
+  k.path=[{x:SIDE, z:cz}, {x:SIDE, z:sz}, {x:sx, z:sz}];
+}
 // checkout queue point — in front of the counter (counter sits to the -z/north of this point)
 const CHECKOUT_STAND = new THREE.Vector3(2.4, 0, -3.55);
 // after grabbing goods, head to the checkout (out to a side corridor → junction → register)
@@ -1377,7 +1562,7 @@ function updateClerks(dt){
   for(const k of clerks){
     if(k.phase==='idle'){
       const s=findRestockSlot(k);
-      if(s){ s.clerkClaim=k; k.slot=s; routeToStand(k, s.standPos); k.phase='go'; }
+      if(s){ s.clerkClaim=k; k.slot=s; routeClerk(k, s.standPos); k.phase='go'; }
       else {                                              // drift back toward the home spot, then stand
         if(!k.path.length){ const d=Math.hypot(k.home.x-k.g.position.x,k.home.z-k.g.position.z); if(d>0.35) k.path=[{x:k.home.x,z:k.home.z}]; }
         if(k.path.length) follow(k,1.6,dt); else restLimbs(k,dt);
@@ -1394,7 +1579,7 @@ function updateClerks(dt){
       k.t += dt*(s.rush>0 ? 2.0 : 1.0);
       if(k.t>=restockSecs()){
         fillSlot(s, s.assignedCat);
-        blip(620,0.05);                                        // restocking is the clerk's labor (paid via wage); goods cost lands at sale (COGS)
+        sfxStock();                                            // restocking is the clerk's labor (paid via wage); goods cost lands at sale (COGS)
         s.clerkClaim=null; s.rush=0; k.slot=null; k.phase='idle'; k.path=[];
       }
     }
@@ -1412,31 +1597,43 @@ const cashNumEl=document.getElementById('cashNum'), dayEl=document.getElementByI
       comboEl=document.getElementById('combo'),
       tidiesEl=document.getElementById('tidies'),
       openingEl=document.getElementById('opening'), openPicksEl=openingEl.querySelector('.opicks'),
+      unlockEl=document.getElementById('unlock'), unlockPicksEl=unlockEl.querySelector('.opicks'), unlockSubEl=document.getElementById('unlockSub'),
       headlinerEl=document.getElementById('headliner'), hireEl=document.getElementById('hire'),
       goalTxtEl=document.getElementById('goalTxt'), goalNowEl=document.getElementById('goalNow'),
-      goalFillEl=document.getElementById('goalFill'), upgEl=document.getElementById('upg'),
-      ubPromoEl=document.getElementById('ubPromo'), ubPriceEl=document.getElementById('ubPrice'),
-      ubStockEl=document.getElementById('ubStock'), upgttlEl=document.getElementById('upgttl');
+      goalFillEl=document.getElementById('goalFill');
 let headliner=null;                            // today's主打 category id → more demand + a price premium
 const DAY_LENGTH = 60;                         // one shift = 60 seconds; structured around the day rhythm
 const START_CASH = 60;                         // opening bankroll so early restocks don't bottom out the till
 const CLERK_WAGE = 18;                          // each clerk's daily wage, settled at end of day
-// ── the growth ratchet: rent climbs every day, so the player must keep growing takings to outpace it ──
-const RENT_BASE = 24, RENT_STEP = 22;          // day1 rent 24, +22 each day → you must reinvest to stay ahead
-function rentFor(d){ return RENT_BASE + (d-1)*RENT_STEP; }
+// ── rent scales with the STORE you run, not the calendar: a sparse new branch pays little, a big floor pays a lot.
+//    (Calendar rent was the death-spiral — opening a fresh branch on day-N inherited day-N's huge rent with day-1 capacity.)
+const RENT_BASE = 18, RENT_PER_UNIT = 7, RENT_LEVEL = 0.18;   // base + per-fixture floor cost + a small per-branch prestige premium
+function rentFor(){ return Math.round(RENT_BASE*(1 + RENT_LEVEL*(level-1)) + RENT_PER_UNIT*drawUnits()); }
 // ── milestone goals: a forever "make the number bigger" target chain (net-worth tiers) ──
 const GOALS = [300, 800, 2000, 5000, 12000, 30000];
-// ── upgrade levers (bought between days on the receipt) — persist across days, reset on bankruptcy ──
-let promoLvl=0, priceLvl=0, stockLvl=0, bankrupt=false;
-const UPG_MAX = 7;
-function promoCost(){ return Math.round(70*Math.pow(1.7, promoLvl)); }
-function priceCost(){ return Math.round(90*Math.pow(1.8, priceLvl)); }
-function stockCost(){ return Math.round(80*Math.pow(1.75, stockLvl)); }
-function spawnGapMul(){ return Math.pow(0.90, promoLvl); }     // 招客: shorter spawn gap → busier store
-function custCap(){ return 6 + promoLvl; }                     // 招客: more shoppers on the floor at once
-function priceMul(){ return 1 + 0.08*priceLvl; }              // 加价: global price lift
-function restockSecs(){ return RESTOCK_TIME*Math.pow(0.86, stockLvl); }  // 理货: clerks refill faster
-let cash=START_CASH, displayedCash=START_CASH, day=1, goalIdx=0, timeLeft=DAY_LENGTH, running=true, started=false,
+let bankrupt=false;
+// ── store stats are driven entirely by the fixtures you own (#61 — the old buy-a-level levers were folded in here) ──
+function drawUnits(){ return (owned.shelf||0)+(owned.fridge||0)+(owned.coffee||0)+(owned.rack||0); }  // total pull of the floor
+function stockUnits(){ return (owned.shelf||0)+(owned.fridge||0); }                                   // the stockable fixtures
+function spawnGapMul(){ return Math.max(0.5, Math.pow(0.96, drawUnits())); }   // 招客: a fuller floor draws a faster crowd
+function custCap(){ return Math.min(14, 4 + Math.round(drawUnits()*0.5)); }    // 招客: more fixtures → more shoppers at once
+function priceMul(){ return varietyMult(); }                                   // 加价: a varied range lets you charge a touch more (synergy)
+function restockSecs(){ return Math.max(0.5, RESTOCK_TIME*Math.pow(0.94, stockUnits())); }  // 理货: more aisles → tighter restock throughput
+// ── equipment economy (#61): each unlocked fixture is a real earner. Stacking the same
+//    family keeps paying but with soft diminishing returns; spreading across families pays a synergy bonus.
+// soft diminishing curve: the k-th identical fixture is worth 0.85^(k-1) of the first, so stacking the
+// same family ("coffee empire") always pays a little more but never hard-caps — never reaches zero.
+function dimSum(n){ let s=0; for(let i=0;i<(n|0);i++) s += Math.pow(0.85,i); return s; }   // 0→0, 1→1, 2→1.85, 3→2.62 …
+function varietyMult(){ const k = EQUIP_FAMS.reduce((a,f)=>a+((owned[f]||0)>0?1:0),0); return 1 + 0.05*Math.max(0,k-1); }  // all 4 families → +15% margin
+// realize an expected fractional count as a whole number (floor + the remainder as a coin flip)
+function realizeCount(exp){ return Math.floor(exp) + (Math.random() < (exp%1) ? 1 : 0); }
+// coffee bar: high-margin cups grabbed at the till. Expected cups/shopper ∝ dimSum(bars) → strictly diminishing per added bar.
+function coffeeSale(){ const cups = realizeCount(0.32 * dimSum(owned.coffee)); let v=0;
+  for(let i=0;i<cups;i++) v += Math.round(7 + Math.random()*5); return v; }                // each cup ~¥7-12
+// checkout snack rack: cheap impulse grabs. Expected grabs/shopper ∝ dimSum(racks) → strictly diminishing per added rack.
+function rackSale(){ const grabs = realizeCount(0.34 * dimSum(owned.rack)); let v=0;
+  for(let i=0;i<grabs;i++) v += Math.round(3 + Math.random()*3); return v; }                // each grab ~¥3-6
+let cash=START_CASH, displayedCash=START_CASH, day=1, goalIdx=0, level=1, timeLeft=DAY_LENGTH, running=true, started=false,
     spawnTimer=0, spawnGap=2.8, elapsed=0, combo=0,
     custDone=0, custLost=0, tidyHits=0,
     dayRevenue=0, dayRestock=0, dayHire=0,        // per-day tallies: takings / cost-of-goods-sold / mid-day hire fees
@@ -1456,19 +1653,24 @@ if(A.isInAigram && A.telegramId){
     .then(r=>{ lbCurrentUser = (r && r.data) ? r.data : r; }).catch(()=>{});
 }
 function runSnapshot(){
-  return { v:1, cash:Math.round(cash), day, goalIdx, promoLvl, priceLvl, stockLvl,
-           clerks:clerks.length, hiScore:Math.round(hiScore) };
+  return { v:2, cash:Math.round(cash), day, goalIdx, level,
+           owned:Object.assign({}, owned), unlockLog:unlockLog.slice(), clerks:clerks.length, hiScore:Math.round(hiScore) };
 }
 function applyRunState(s){
-  if(!s || s.v!==1) return;
+  if(!s || (s.v!==1 && s.v!==2)) return;
   cash = (typeof s.cash==='number') ? s.cash : cash;
   displayedCash = cash; cashNumEl.textContent = String(Math.round(cash));
-  day = s.day|0 || 1; goalIdx = s.goalIdx|0;
-  promoLvl = s.promoLvl|0; priceLvl = s.priceLvl|0; stockLvl = s.stockLvl|0;
+  day = s.day|0 || 1; goalIdx = s.goalIdx|0; level = Math.max(1, s.level|0 || 1);
   hiScore = Math.max(hiScore, s.hiScore|0); localStorage.setItem(HISCORE_KEY, hiScore);
-  const want = Math.max(2, s.clerks|0);
+  // restore the fitted-out fixtures (v1 saves have no `owned` → derive: L1 full, L2+ at least the base)
+  if(s.owned && typeof s.owned==='object'){ owned = {}; EQUIP_FAMS.forEach(f => owned[f] = Math.max(0, s.owned[f]|0)); }  // stacking is uncapped (coffee empire) → don't clamp to EQUIP_FULL
+  else { owned = (level<=1) ? Object.assign({}, EQUIP_FULL) : Object.assign({}, L2_BASE); }
+  unlockLog = Array.isArray(s.unlockLog) ? s.unlockLog.filter(f=>EQUIP_FAMS.includes(f)) : [];   // (#66) restore the fit-out order
+  const want = Math.max(1, s.clerks|0);                  // a branch can run on a single clerk
   while(clerks.length < want) spawnClerk();              // restore the hired floor staff
-  setDayLabel();
+  while(clerks.length > want){ const k=clerks.pop(); scene.remove(k.g); } clerkSpot=clerks.length;  // …and shed any extra spawned at boot
+  buildStore(level);                                     // stand the store back up at the restored level + fixtures
+  setDayLabel();                                         // (buildStore, not rebuildStore: restore only runs pre-play, before tidyEls/customers exist — TDZ-safe)
 }
 function localSave(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(runSnapshot())); }catch(e){} }
 function cloudSave(){
@@ -1506,13 +1708,13 @@ function fetchGlobal(){
   return A.callAigramAPI(`/note/aigram/ai/game/rank/score/list/by/session_id?session_id=${encodeURIComponent(A.gameUuid)}`)
     .then(r=>{
       const rows = (r && Array.isArray(r.data)) ? r.data : (Array.isArray(r)? r : []);
-      return rows.map(row=>({ id:String(row.user_id), name:row.user_name||'玩家', avatar:row.head_url||'',
+      return rows.map(row=>({ id:String(row.user_id), name:row.user_name||t('lb_player'), avatar:row.head_url||'',
         score:Number(row.score)||0, rank:row.rank, isMe:String(row.user_id)===String(A.telegramId) }));
     }).catch(()=>[]);
 }
 function renderLB(rows){
   lbBodyEl.innerHTML='';
-  if(!rows.length){ const d=document.createElement('div'); d.className='lbempty'; d.textContent='还没有排名 · 撑过今天上榜'; lbBodyEl.appendChild(d); return; }
+  if(!rows.length){ const d=document.createElement('div'); d.className='lbempty'; d.textContent=t('lb_empty'); lbBodyEl.appendChild(d); return; }
   rows.forEach((r,i)=>{
     const row=document.createElement('div'); row.className='lbrow'+(r.isMe?' me':'')+(!r.isMe&&r.id?' tap':'');
     const rank=r.rank||i+1;
@@ -1520,14 +1722,14 @@ function renderLB(rows){
     if(r.avatar) av.src=r.avatar; else av.textContent=(r.name||'?').slice(0,1).toUpperCase();
     const nm=document.createElement('span'); nm.className='nm'; nm.textContent=r.name;
     row.innerHTML=`<span class="rk">${rank}</span>`; row.appendChild(av); row.appendChild(nm);
-    if(r.isMe){ const me=document.createElement('span'); me.className='me-tag'; me.textContent='你'; row.appendChild(me); }
+    if(r.isMe){ const me=document.createElement('span'); me.className='me-tag'; me.textContent=t('lb_you'); row.appendChild(me); }
     const sc=document.createElement('span'); sc.className='sc'; sc.textContent='¥'+r.score; row.appendChild(sc);
     if(!r.isMe && r.id) row.addEventListener('click', ()=>A.openAigramProfile(r.id));
     lbBodyEl.appendChild(row);
   });
 }
 function openLB(){
-  lbBodyEl.innerHTML='<div class="lbempty">载入中…</div>'; lbEl.classList.add('show');
+  lbBodyEl.innerHTML='<div class="lbempty">'+t('lb_loading')+'</div>'; lbEl.classList.add('show');
   fetchGlobal().then(renderLB);
 }
 if(A.canRank) lbBtnEl.classList.add('show');
@@ -1536,9 +1738,9 @@ lbCloseEl.addEventListener('click', ()=>lbEl.classList.remove('show'));
 lbEl.addEventListener('click', e=>{ if(e.target===lbEl) lbEl.classList.remove('show'); });
 
 function addCash(n){ cash += n; }                                              // animator lerps displayedCash → cash
-function setCombo(n){ combo=n; if(n>=3){ comboEl.textContent='连击 ×'+n; comboEl.classList.add('show'); } else comboEl.classList.remove('show'); }
+function setCombo(n){ combo=n; if(n>=3){ comboEl.textContent=t('combo',{n}); comboEl.classList.add('show'); } else comboEl.classList.remove('show'); }
 function setDayLabel(){
-  const phase = (running && started) ? (curPeriod ? curPeriod.name : '营业中') : '准备开门';
+  const phase = (running && started) ? (curPeriod ? periodName(curPeriod) : t('day_phase_open')) : t('day_phase_pre');
   dayEl.textContent = `DAY ${day} · ${phase}`;
 }
 const CLOCK_CIRC = 2*Math.PI*22;                                               // r=22 → ~138.23
@@ -1589,7 +1791,7 @@ function handleTap(ev){
   if(s.filled){ openCatPanel(s); return; }            // stocked shelf → change what it sells
   if(s.rush){ blip(540,0.05); return; }               // empty + already rushing
   s.rush = 1;                                          // empty shelf → rush the clerk to refill it
-  popText(s.worldPos.clone().setY(1.7),'催货!','tidy'); blip(760,0.06);
+  popText(s.worldPos.clone().setY(1.7),t('restock_pop'),'tidy'); sfxRush();
 }
 
 // ── change-category panel: pick which category a shelf sells (clerks then keep it stocked with that) ──
@@ -1603,7 +1805,7 @@ function openCatPanel(s){
     const cat = CAT[id];
     const b = document.createElement('button');
     b.className = 'chip'+(id===s.assignedCat?' sel':'');
-    b.innerHTML = `<div class="sil" style="background-image:url(${silhouetteURL(cat.kind, cat.col)})"></div><span class="lbl">${cat.name}</span>`;
+    b.innerHTML = `<div class="sil" style="background-image:url(${silhouetteURL(cat.kind, cat.col)})"></div><span class="lbl">${catName(cat)}</span>`;
     b.addEventListener('click', ()=>setAssignedCat(s, id));      // onClick (not pointerdown) so the close-click can't bleed to the canvas behind
     catpanelGrid.appendChild(b);
   }
@@ -1616,7 +1818,7 @@ function setAssignedCat(s, catId){
     s.assignedCat = catId;
     if(s.filled) emptySlot(s);                          // clear the old goods; a clerk refills with the new category
     s.rush = 1;                                         // hurry the swap so the player's choice feels responsive
-    popText(s.worldPos.clone().setY(1.7), '改卖'+CAT[catId].name, 'tidy'); blip(760,0.06);
+    popText(s.worldPos.clone().setY(1.7), t('switch_to',{name:catName(CAT[catId])}), 'tidy'); blip(760,0.06);
   }
   closeCatPanel();
 }
@@ -1644,7 +1846,7 @@ function hireClerk(){
   if(cash < cost){ hireEl.classList.remove('nope'); void hireEl.offsetWidth; hireEl.classList.add('nope'); blip(300,0.08,'square'); return; }
   addCash(-cost); dayHire += cost;                    // hiring fee → folds into the receipt's 人力 line
   spawnClerk(true);                                   // new clerk walks in through the door
-  popText(DOOR.clone().setY(2.2),'雇! -¥'+cost,'bad'); blip(820,0.08);
+  popText(DOOR.clone().setY(2.2),t('hired',{n:cost}),'bad'); blip(820,0.08);
   refreshHire();
 }
 hireEl.addEventListener('click', hireClerk);
@@ -1660,7 +1862,7 @@ function openOpening(){
   for(const cat of picks){
     const b = document.createElement('button');
     b.className = 'opick';
-    b.innerHTML = `<span class="sil" style="background-image:url(${silhouetteURL(cat.kind, cat.col)})"></span><span class="lbl">${cat.name}</span>`;
+    b.innerHTML = `<span class="sil" style="background-image:url(${silhouetteURL(cat.kind, cat.col)})"></span><span class="lbl">${catName(cat)}</span>`;
     b.addEventListener('click', ()=>chooseHeadliner(cat.id));
     openPicksEl.appendChild(b);
   }
@@ -1670,12 +1872,55 @@ function chooseHeadliner(id){
   headliner = id;
   const cat = CAT[id];
   headlinerEl.querySelector('.hsil').style.backgroundImage = `url(${silhouetteURL(cat.kind, cat.col)})`;
-  headlinerEl.querySelector('.htxt').textContent = '主打 · '+cat.name;
+  headlinerEl.querySelector('.htxt').textContent = t('headliner_tag',{name:catName(cat)});
   headlinerEl.classList.add('show');
   openingEl.classList.remove('show');
   blip(760,0.08);
   kickoffGame();
 }
+
+// ── unlock card: clear a goal → on the next branch, pick one fixture to fit out ──
+// flat brand-coloured SVG marks (no emoji — they render differently per OS)
+const EQ_ICON = {
+  shelf:  `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='3' y='4' width='18' height='16' rx='1.5' fill='none' stroke='#2a211a' stroke-width='2'/><line x1='3' y1='11.5' x2='21' y2='11.5' stroke='#2a211a' stroke-width='2'/><rect x='5.5' y='6' width='3.4' height='4' fill='#3fb6ac'/><rect x='10.3' y='6' width='3.4' height='4' fill='#f4b63f'/><rect x='15.1' y='6' width='3.4' height='4' fill='#e0603f'/><rect x='5.5' y='13.4' width='3.4' height='4.6' fill='#f4b63f'/><rect x='10.3' y='13.4' width='3.4' height='4.6' fill='#e0603f'/><rect x='15.1' y='13.4' width='3.4' height='4.6' fill='#3fb6ac'/></svg>`,
+  fridge: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='5' y='3' width='14' height='18' rx='1.6' fill='#cfeeea' stroke='#2a211a' stroke-width='2'/><line x1='5' y1='10' x2='19' y2='10' stroke='#2a211a' stroke-width='2'/><line x1='15.4' y1='5.4' x2='15.4' y2='8' stroke='#2a211a' stroke-width='2'/><line x1='15.4' y1='12.4' x2='15.4' y2='15.4' stroke='#2a211a' stroke-width='2'/></svg>`,
+  coffee: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M5 9h12v5a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5z' fill='#f4b63f' stroke='#2a211a' stroke-width='2' stroke-linejoin='round'/><path d='M17 10.5h2.2a2 2 0 0 1 0 4H17' fill='none' stroke='#2a211a' stroke-width='2'/><path d='M8 3.2c-1 1.4 1 2.4 0 3.8M12 3.2c-1 1.4 1 2.4 0 3.8' fill='none' stroke='#2a211a' stroke-width='1.6' stroke-linecap='round'/></svg>`,
+  rack:   `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='6' y='3' width='12' height='18' rx='1.4' fill='none' stroke='#2a211a' stroke-width='2'/><line x1='6' y1='9' x2='18' y2='9' stroke='#2a211a' stroke-width='2'/><line x1='6' y1='15' x2='18' y2='15' stroke='#2a211a' stroke-width='2'/><rect x='8' y='4.6' width='2.4' height='3' fill='#e0603f'/><rect x='11.4' y='4.6' width='2.4' height='3' fill='#3fb6ac'/><rect x='8' y='10.6' width='2.4' height='3' fill='#f4b63f'/><rect x='11.4' y='10.6' width='2.4' height='3' fill='#e0603f'/><rect x='8' y='16.6' width='2.4' height='3' fill='#3fb6ac'/><rect x='11.4' y='16.6' width='2.4' height='3' fill='#f4b63f'/></svg>`,
+};
+const EQ_ICON_URL = {}; for(const k in EQ_ICON){ EQ_ICON_URL[k] = 'data:image/svg+xml,'+encodeURIComponent(EQ_ICON[k]); }
+const EQ_NAME = { shelf:'eq_shelf', fridge:'eq_fridge', coffee:'eq_coffee', rack:'eq_rack' };
+function openUnlock(){
+  // the new branch is already standing behind the card (rebuilt sparse); offer up to 3
+  // families that still have room to grow, weighted toward fixtures the player lacks.
+  const room = EQUIP_FAMS.slice();                                      // every family re-pickable: build a coffee empire if you want
+  const fresh = room.filter(f => (owned[f]||0)===0);                    // brand-new toys first
+  const rest  = room.filter(f => (owned[f]||0)>0);
+  for(const arr of [fresh, rest]){ for(let i=arr.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [arr[i],arr[j]]=[arr[j],arr[i]]; } }
+  const picks = fresh.concat(rest).slice(0,3);
+  openingEl.classList.remove('show');                    // the fit-out card replaces the headliner pick for this beat
+  unlockSubEl.textContent = t('unlock_pick',{lvl:level});
+  unlockPicksEl.innerHTML = '';
+  for(const fam of picks){
+    const b = document.createElement('button');
+    b.className = 'opick';
+    b.innerHTML = `<span class="sil" style="background-image:url(&quot;${EQ_ICON_URL[fam]}&quot;)"></span>`+
+                  `<span class="lbl">${t(EQ_NAME[fam])}</span>`+
+                  `<span class="cnt">${t('eq_have',{n:owned[fam]||0})}</span>`;
+    b.addEventListener('click', ()=>chooseUnlock(fam));
+    unlockPicksEl.appendChild(b);
+  }
+  unlockEl.classList.add('show');
+}
+function chooseUnlock(fam){
+  owned[fam] = (owned[fam]||0) + 1;
+  unlockLog.push(fam);                                     // (#66) record the fit-out order → personalises the poster wall
+  unlockEl.classList.remove('show');
+  blip(880,0.1);
+  rebuildStore(level);                                     // drop the new fixture in, stocked
+  localSave();
+  openOpening();                                           // then the usual headliner pick for the day
+}
+
 function removeCustomer(i){
   const c = customers[i]; if(!c) return;
   if(c.wishEl) c.wishEl.remove();
@@ -1684,49 +1929,31 @@ function removeCustomer(i){
 
 // tiny WebAudio (gameplay only → post first-touch, preload-safe)
 let actx=null;
-function blip(freq,dur,type='sine'){ try{
+function tone(freq,dur,type='sine',delay=0,peak=0.18){ try{
   actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+  const t0=actx.currentTime+delay;
   const o=actx.createOscillator(), g=actx.createGain(); o.type=type; o.frequency.value=freq;
   o.connect(g); g.connect(actx.destination);
-  g.gain.setValueAtTime(0.0001,actx.currentTime); g.gain.exponentialRampToValueAtTime(0.18,actx.currentTime+0.01);
-  g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+dur); o.start(); o.stop(actx.currentTime+dur+0.02);
+  g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(peak,t0+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur); o.start(t0); o.stop(t0+dur+0.02);
 }catch(e){} }
+function blip(freq,dur,type='sine'){ tone(freq,dur,type,0,0.18); }
+// ── distinct event palette: each store moment has its own pitch contour + timbre so they never blur ──
+function sfxRush(){ tone(560,0.05,'square',0,0.14); tone(740,0.06,'square',0.05,0.13); }                // player commands a restock — quick rising "go" tick
+function sfxStock(){ tone(300,0.045,'square',0,0.14); tone(232,0.06,'square',0.052,0.12); }            // shelf filled — dry low mechanical "tk-tk"
+function sfxGot(){ tone(1120,0.05,'triangle',0,0.16); }                                                 // customer grabs item — single bright high pop
+function sfxCash(combo=0){ tone(988,0.07,'triangle',0,0.2); tone(1319,0.1,'triangle',0.07,0.2);         // register — rising sparkly cha-ching
+  if(combo>1) tone(1568,0.1,'sine',0.155,0.15); }
+function sfxLost(){ tone(392,0.15,'sawtooth',0,0.16); tone(196,0.24,'sawtooth',0.13,0.16); }            // customer leaves empty-handed — low descending sad wah
 
-// ── upgrade strip: render affordability + buy (reinvest profit between days) ──
-const UPG = {
-  promo: { el:()=>ubPromoEl, lvl:()=>promoLvl, cost:promoCost, buy:()=>{promoLvl++;} },
-  price: { el:()=>ubPriceEl, lvl:()=>priceLvl, cost:priceCost, buy:()=>{priceLvl++;} },
-  stock: { el:()=>ubStockEl, lvl:()=>stockLvl, cost:stockCost, buy:()=>{stockLvl++;} },
-};
-function renderUpgrades(){
-  for(const k in UPG){
-    const u=UPG[k], el=u.el(), lv=u.lvl(), maxed=lv>=UPG_MAX;
-    el.querySelector('.lv').textContent = 'Lv '+lv;
-    el.querySelector('.uc').textContent = maxed ? 'MAX' : ('¥'+u.cost());
-    el.classList.toggle('maxed', maxed);
-    el.classList.toggle('broke', !maxed && cash < u.cost());
-  }
-}
-function buyUpgrade(k){
-  const u=UPG[k], el=u.el();
-  if(u.lvl()>=UPG_MAX) return;
-  if(cash < u.cost()){ el.classList.remove('nope'); void el.offsetWidth; el.classList.add('nope'); blip(300,0.08,'square'); return; }
-  addCash(-u.cost()); u.buy();
-  displayedCash = cash;                                        // HUD is hidden behind the receipt → keep it in sync for when it closes
-  el.classList.remove('buy'); void el.offsetWidth; el.classList.add('buy'); blip(820,0.08);
-  renderUpgrades(); renderGoal();
-}
-ubPromoEl.addEventListener('click', ()=>buyUpgrade('promo'));
-ubPriceEl.addEventListener('click', ()=>buyUpgrade('price'));
-ubStockEl.addEventListener('click', ()=>buyUpgrade('stock'));
 // ── milestone goal progress (current net-worth tier) ──
 function renderGoal(){
   if(goalIdx >= GOALS.length){
-    goalTxtEl.textContent='目标全达成'; goalNowEl.textContent='资产 ¥'+Math.max(0,cash);
+    goalTxtEl.textContent=t('goals_all'); goalNowEl.textContent=t('net')+' ¥'+Math.max(0,cash);
     goalFillEl.style.width='100%'; return;
   }
   const g = GOALS[goalIdx];
-  goalTxtEl.textContent='目标 ¥'+g; goalNowEl.textContent='资产 ¥'+Math.max(0,cash);
+  goalTxtEl.textContent=t('goal_lbl')+' ¥'+g; goalNowEl.textContent=t('net')+' ¥'+Math.max(0,cash);
   goalFillEl.style.width = Math.max(0, Math.min(1, cash/g))*100 + '%';
 }
 
@@ -1734,23 +1961,30 @@ function endOfDay(){
   running=false;
   // settle the day: wages + rent come out of the till now (hire fees already left when hired)
   const wageOnly = clerks.length * CLERK_WAGE;
-  const rent = rentFor(day);
+  const rent = rentFor();
   addCash(-wageOnly); addCash(-rent);
   const wage = wageOnly + dayHire;                              // total 人力 shown on the receipt = daily wage + hire fees
   const net = dayRevenue - dayRestock - wage - rent;           // takings − COGS − labour − rent
   bankrupt = cash < 0;
   // milestone check (only when solvent): advancing through every tier we just crossed
   let hitGoal = null;
+  const prevLevel = level;
   if(!bankrupt) while(goalIdx < GOALS.length && cash >= GOALS[goalIdx]){ hitGoal = GOALS[goalIdx]; goalIdx++; }
+  if(hitGoal!==null){
+    level = 1 + goalIdx;                                  // each goal cleared opens the next branch
+    if(prevLevel===1) owned = Object.assign({}, L2_BASE); // leaving the flagship → first branch starts sparse
+    branchPending = true;                                 // next day opens the fit-out card before trading
+  }
   if(cash > hiScore){ hiScore = cash; localStorage.setItem(HISCORE_KEY, hiScore); }
   persistRun();                                          // platform: save run + submit 历史最高资产 every day-close
 
   const stampEl = document.getElementById('stamp');
   overEl.classList.toggle('bust', bankrupt);
-  if(bankrupt){ stampEl.textContent='破产 · DAY '+day; }
-  else if(hitGoal!==null){ stampEl.textContent='达成 ¥'+hitGoal; }
+  if(bankrupt){ stampEl.textContent=t('stamp_bankrupt',{n:day}); }
+  else if(hitGoal!==null){ stampEl.textContent=t('stamp_branch'); }
   else { stampEl.textContent='DAY '+day; }
-  document.querySelector('#over .head').textContent = bankrupt ? '清算' : '今日净利';
+  document.querySelector('#over .head').textContent = bankrupt ? t('head_liquidation')
+    : (hitGoal!==null ? t('branch_head') : t('profit_head'));
   document.getElementById('dayRev').textContent  = '¥'+dayRevenue;
   document.getElementById('dayCost').textContent = '-¥'+dayRestock;
   document.getElementById('dayWage').textContent = '-¥'+wage;
@@ -1758,14 +1992,13 @@ function endOfDay(){
   document.getElementById('custDone').textContent = String(custDone);
   document.getElementById('custLost').textContent = String(custLost);
   document.getElementById('hiScore').textContent = bankrupt
-    ? ('撑到 DAY '+day+' · 历史最高 ¥'+hiScore)
-    : ('历史最高 ¥'+hiScore);
-  // bankruptcy hides planning UI; a solvent day shows goal + upgrades to reinvest
-  const planVis = bankrupt ? 'none' : '';
-  document.getElementById('goal').style.display = planVis;
-  upgttlEl.style.display = planVis; upgEl.style.display = bankrupt ? 'none' : 'flex';
-  document.getElementById('replay').textContent = bankrupt ? '重开' : '明天继续';
-  if(!bankrupt){ renderGoal(); renderUpgrades(); }
+    ? t('over_reached',{d:day, n:hiScore})
+    : t('over_best',{n:hiScore});
+  // bankruptcy hides the goal bar; a solvent day shows the milestone progress
+  document.getElementById('goal').style.display = bankrupt ? 'none' : '';
+  document.getElementById('replay').textContent = bankrupt ? t('btn_replay')
+    : (hitGoal!==null ? t('branch_btn',{lvl:level}) : t('btn_next'));
+  if(!bankrupt){ renderGoal(); }
   // roll the net total up from 0 → net so it lands like a cash drawer tally
   const finalEl = document.getElementById('finalCash'); finalEl.textContent='0';
   overEl.classList.add('show');
@@ -1779,13 +2012,23 @@ function endOfDay(){
   requestAnimationFrame(rollFinal);
 }
 document.getElementById('replay').addEventListener('click', ()=>{ bankrupt ? resetRun() : startNextDay(); });
+// full fixture teardown + rebuild at a given level: clears live customers, clerk targets,
+// and the per-gondola tidy bars (all hold refs into the old slot/gondola set) before
+// clearEquip()/buildStore() swap the fixtures. Safe to call at runtime only (after tidyEls exists).
+function rebuildStore(lvl){
+  for(let i=customers.length-1;i>=0;i--){ removeCustomer(i); }
+  for(const k of clerks){ if(k.slot) k.slot.clerkClaim=null; k.slot=null; k.phase='idle'; k.path=[]; }
+  if(typeof tidyEls!=='undefined'){ tidyEls.forEach(r=>r.el.remove()); tidyEls.clear(); }
+  buildStore(lvl);                                       // buildStore() clears + re-stocks the new fixture set
+}
 function resetRun(){                                    // bankrupt → wipe everything back to a fresh DAY 1
   bankrupt=false; overEl.classList.remove('bust');
   cash=START_CASH; displayedCash=START_CASH; cashNumEl.textContent=String(START_CASH);
-  day=0; goalIdx=0; promoLvl=0; priceLvl=0; stockLvl=0;
+  day=0; goalIdx=0; level=1;
+  owned = Object.assign({}, EQUIP_FULL); unlockLog = []; branchPending=false;   // back to the full flagship
   // hire fees & extra clerks reset: shed clerks back down to the opening two
   while(clerks.length>2){ const k=clerks.pop(); scene.remove(k.g); } clerkSpot=clerks.length;
-  for(const s of slots){ s.assignedCat = s.fam[(Math.random()*s.fam.length)|0]; if(!s.filled) fillSlot(s, s.assignedCat); }
+  rebuildStore(1);                                       // fresh flagship, re-stocked from scratch
   localSave();                                           // platform: persist the wiped run so a reload starts fresh too
   startNextDay();
 }
@@ -1800,7 +2043,14 @@ function startNextDay(){
   for(let i=customers.length-1;i>=0;i--){ removeCustomer(i); }
   running = true; started = false; spawnTimer = 0; elapsed = 0; curPeriod = null;
   setDayLabel();
-  openOpening();                                       // re-open the start gate for the new day's主打
+  if(branchPending){
+    branchPending = false;
+    while(clerks.length>1){ const k=clerks.pop(); scene.remove(k.g); } clerkSpot=clerks.length;  // a new store opens lean: ONE restocking clerk, hire more as it grows
+    rebuildStore(level);                               // stand up the sparse new branch behind the card
+    openUnlock();                                      // fit out one fixture, then the headliner pick follows
+  } else {
+    openOpening();                                     // re-open the start gate for the new day's headliner
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1913,7 +2163,7 @@ function tick(){
         if(c.patience<=0){ c.phase='leaveSad'; routeToExit(c);
           if(c.wishEl) c.wishEl.classList.add('gone');
           if(!c.demo){ custLost+=1; setCombo(0);
-            popText(c.g.position.clone().setY(2.6),'走了…','bad'); blip(150,0.18,'square'); } }
+            popText(c.g.position.clone().setY(2.6),t('cust_left'),'bad'); sfxLost(); } }
       }
     } else if(c.phase==='go'){
       if(!c.slot.filled){ c.phase='seek'; c.path=[]; continue; }   // taken away meanwhile
@@ -1923,10 +2173,10 @@ function tick(){
       c.t+=dt; faceShelf(c,dt);
       if(c.t>0.45){
         c.tidy = gondolaTidy(c.slot.gondola);
-        emptySlot(c.slot);
+        takeOne(c.slot);
         if(c.wishEl) c.wishEl.classList.add('gone');               // got the item — fade the bubble
         if(c.demo){ c.phase='leaveHappy'; routeToExit(c); }        // attract loop skips the register
-        else { c.phase='pay'; c.t=0; routeToCheckout(c); popText(c.slot.worldPos.clone().setY(1.7),'拿到!','tidy'); }
+        else { c.phase='pay'; c.t=0; routeToCheckout(c); popText(c.slot.worldPos.clone().setY(1.7),t('cust_got'),'tidy'); sfxGot(); }
       }
     } else if(c.phase==='pay'){
       if(follow(c,2.6,dt)){                     // arrived at the register → settle up, then leave
@@ -1937,13 +2187,18 @@ function tick(){
           if(headliner && c.want===headliner) price *= 1.5;  // 主打 commands a premium
           price = Math.round(price);
           const cost = CAT[c.want].cost;                     // cost of goods SOLD, realized here (never at restock) → no overstock drain
-          addCash(price - cost); dayRevenue += price; dayRestock += cost;
-          let gain = price - cost;
-          // impulse rack at the register: ~1/3 of shoppers grab a small add-on (a candy/gum bump, pure margin)
-          if(Math.random() < 0.34){ const imp = 2 + ((Math.random()*3)|0); addCash(imp); dayRevenue += imp; gain += imp; }
+          const margin = price - cost;                     // price already carries the variety markup via priceMul()=varietyMult()
+          addCash(margin); dayRevenue += price; dayRestock += cost;
+          let gain = margin;
+          // coffee bar — a high-margin cup grabbed at the till (scales with how many bars you've stacked)
+          const coff = coffeeSale();
+          if(coff>0){ addCash(coff); dayRevenue += coff; gain += coff; }
+          // checkout snack rack — a cheap impulse add-on (scales with how many racks you own)
+          const rk = rackSale();
+          if(rk>0){ addCash(rk); dayRevenue += rk; gain += rk; }
           if(c.tidy){ tidyHits+=1; setCombo(combo+1); const bonus=2+Math.floor(combo/3)*2; addCash(bonus); dayRevenue+=bonus; gain+=bonus;
-            popText(c.g.position.clone().setY(2.4),'+¥'+gain,'tidy'); blip(880+Math.min(combo,12)*24,0.09); }
-          else { popText(c.g.position.clone().setY(2.4),'+¥'+gain,'cash'); blip(720,0.07); }
+            popText(c.g.position.clone().setY(2.4),'+¥'+gain,'tidy'); sfxCash(combo); }
+          else { popText(c.g.position.clone().setY(2.4),'+¥'+gain,'cash'); sfxCash(0); }
           c.phase='leaveHappy'; routeToExit(c);
         }
       }
