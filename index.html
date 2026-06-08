@@ -250,6 +250,10 @@
     font-family:-apple-system,"PingFang SC",sans-serif;font-size:13px;font-weight:800;letter-spacing:.04em;
     color:var(--tealD);text-decoration:underline;text-underline-offset:3px;padding:4px 8px;}
   .lblink.show{display:block;}
+  #over button.restartlink{display:block;margin:9px auto 0;padding:4px 10px;background:none;border:none;
+    border-radius:0;box-shadow:none;color:#9a8d7c;font-size:12px;letter-spacing:.02em;text-decoration:none;}
+  #over button.restartlink:active{transform:none;box-shadow:none;}
+  #over button.restartlink.arm{color:var(--red);text-decoration:underline;}
   #lb{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;
     background:rgba(21,17,14,.62);padding:24px;}
   #lb.show{display:flex;}
@@ -313,6 +317,7 @@
     <div class="hi" id="hiScore"></div>
     <button id="replay" data-i18n="btn_next">Next Day</button>
     <button id="lbBtn" class="lblink" data-i18n="btn_lb">Leaderboard</button>
+    <button id="restartRun" class="lblink restartlink" data-i18n="btn_restart">Start over</button>
   </div>
 </div>
 <div id="lb">
@@ -368,6 +373,7 @@ const I18N = {
     catpanel_title:'WHAT DOES THIS SHELF SELL?', clock_cap:'OPEN', day_phase_open:'Open', day_phase_pre:'Opening soon',
     profit_head:'TODAY’S PROFIT', row_rev:'Revenue', row_cost:'Cost of goods', row_wage:'Wages', row_rent:'Rent', row_sales:'Sold · Walkouts',
     btn_next:'Next Day', btn_replay:'Restart', btn_lb:'Leaderboard', btn_close:'Close', hire:'Hire clerk',
+    btn_restart:'Start over', restart_confirm:'Tap again to wipe progress',
     lb_title:'NET WORTH', lb_sub:'best net worth', lb_player:'Player', lb_you:'YOU', lb_loading:'Loading…', lb_empty:'No ranks yet · survive today to make the board',
     open_title:'TODAY’S HEADLINER', open_sub:'pick a category · shoppers crave it · sells for more', headliner:'Headliner',
     head_liquidation:'LIQUIDATION', goals_all:'ALL GOALS CLEARED', goal_lbl:'Goal', net:'Net worth', hi:'Best',
@@ -383,6 +389,7 @@ const I18N = {
     catpanel_title:'这个货架卖什么', clock_cap:'营业', day_phase_open:'营业中', day_phase_pre:'准备开门',
     profit_head:'今日净利', row_rev:'营业额', row_cost:'售出成本', row_wage:'人力开支', row_rent:'租金', row_sales:'成交 · 走单',
     btn_next:'明天继续', btn_replay:'重开', btn_lb:'查看排行榜', btn_close:'关闭', hire:'雇店员',
+    btn_restart:'从头开始', restart_confirm:'再点一次清空存档',
     lb_title:'资产排行榜', lb_sub:'历史最高资产', lb_player:'玩家', lb_you:'你', lb_loading:'载入中…', lb_empty:'还没有排名 · 撑过今天上榜',
     open_title:'今天主打什么', open_sub:'选一个品类 · 顾客更想买 · 卖得更贵', headliner:'主打',
     head_liquidation:'清算', goals_all:'目标全达成', goal_lbl:'目标', net:'资产', hi:'历史最高',
@@ -1701,7 +1708,8 @@ function restoreOnBoot(){
 }
 // ── leaderboard view ──
 const lbEl=document.getElementById('lb'), lbBodyEl=document.getElementById('lbBody'),
-      lbBtnEl=document.getElementById('lbBtn'), lbCloseEl=document.getElementById('lbClose');
+      lbBtnEl=document.getElementById('lbBtn'), lbCloseEl=document.getElementById('lbClose'),
+      restartRunEl=document.getElementById('restartRun');
 function fetchGlobal(){
   if(!A.canRank) return Promise.resolve([]);
   return A.callAigramAPI(`/note/aigram/ai/game/rank/score/list/by/session_id?session_id=${encodeURIComponent(A.gameUuid)}`)
@@ -1997,6 +2005,8 @@ function endOfDay(){
   document.getElementById('goal').style.display = bankrupt ? 'none' : '';
   document.getElementById('replay').textContent = bankrupt ? t('btn_replay')
     : (hitGoal!==null ? t('branch_btn',{lvl:level}) : t('btn_next'));
+  // a solvent run has no other exit → offer an explicit "start over" (bankruptcy already restarts via the replay button)
+  restartRunEl.style.display = bankrupt ? 'none' : 'block'; disarmRestart();
   if(!bankrupt){ renderGoal(); }
   // roll the net total up from 0 → net so it lands like a cash drawer tally
   const finalEl = document.getElementById('finalCash'); finalEl.textContent='0';
@@ -2011,6 +2021,19 @@ function endOfDay(){
   requestAnimationFrame(rollFinal);
 }
 document.getElementById('replay').addEventListener('click', ()=>{ bankrupt ? resetRun() : startNextDay(); });
+// explicit start-over (two-tap confirm so it can't wipe a run by accident)
+let restartArmed=false, restartTimer=null;
+function disarmRestart(){ restartArmed=false; restartRunEl.classList.remove('arm'); restartRunEl.textContent=t('btn_restart'); if(restartTimer){ clearTimeout(restartTimer); restartTimer=null; } }
+restartRunEl.addEventListener('click', ()=>{
+  if(!restartArmed){
+    restartArmed=true; restartRunEl.classList.add('arm'); restartRunEl.textContent=t('restart_confirm');
+    restartTimer=setTimeout(disarmRestart, 3000);
+    return;
+  }
+  disarmRestart();
+  resetRun();                                            // full wipe → fresh DAY 1 flagship + localSave()
+  cloudSave();                                           // also overwrite the cloud copy so a reload / another device can't resurrect the old run
+});
 // full fixture teardown + rebuild at a given level: clears live customers, clerk targets,
 // and the per-gondola tidy bars (all hold refs into the old slot/gondola set) before
 // clearEquip()/buildStore() swap the fixtures. Safe to call at runtime only (after tidyEls exists).
