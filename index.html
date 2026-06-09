@@ -1908,17 +1908,17 @@ const cashNumEl=document.getElementById('cashNum'), dayEl=document.getElementByI
       finGoalFillEl=document.getElementById('finGoalFill');
 let headliner=null;                            // today's主打 category id → more demand + a price premium
 const DAY_LENGTH = 60;                         // one shift = 60 seconds; structured around the day rhythm
-const START_CASH = 60;                         // opening bankroll so early restocks don't bottom out the till
+const START_CASH = 30;                         // tight opening — day 1 has to earn its way past goal[0]=60, not arrive there for free
 const CLERK_WAGE = 18;                          // each clerk's daily wage, settled at end of day
 // ── rent scales with the STORE you run, not the calendar: a sparse new branch pays little, a big floor pays a lot.
 //    (Calendar rent was the death-spiral — opening a fresh branch on day-N inherited day-N's huge rent with day-1 capacity.)
-const RENT_BASE = 18, RENT_PER_UNIT = 7, RENT_LEVEL = 0.18;   // base + per-fixture floor cost + a small per-branch prestige premium
+const RENT_BASE = 18, RENT_PER_UNIT = 9, RENT_LEVEL = 0.18;   // base + per-fixture floor cost + a small per-branch prestige premium — each new fixture has to earn its rent back
 function rentFor(){ return Math.round(RENT_BASE*(1 + RENT_LEVEL*(level-1)) + RENT_PER_UNIT*drawUnits()); }
 // ── endless milestone goals (net-worth tiers) ──────────────────────────────────
-// Low base + gentle 1.3× growth: the first tiers fall in a day or two (~¥100/day is plenty),
-// and later gaps stretch only as fast as the store's own earning power. No cap → always one
-// more upgrade ahead. goalAt(0)=60, (1)=138, (2)=239, (3)=371 … cumulative net worth.
-function goalAt(i){ return Math.round(60 * (Math.pow(1.3, (i|0)+1) - 1) / 0.3); }
+// Steeper 1.42× growth so later tiers really stretch the store's earnings instead of being cleared
+// by carryover cash alone. Geometric sum keeps the smooth ramp; no cap → always one more upgrade ahead.
+// goalAt(0)=60, (1)=145, (2)=266, (3)=438, (4)=682, (5)=1028, (10)≈6630 (vs old 3384).
+function goalAt(i){ return Math.round(60 * (Math.pow(1.42, (i|0)+1) - 1) / 0.42); }
 const BRANCH_EVERY = 6;   // every Nth upgrade the card also offers an OPTIONAL new branch
 const FANTASY_AT   = 1;   // from this milestone on, the card offers the one-time "after dark" fantasy unlock
 let bankrupt=false;
