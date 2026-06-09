@@ -1971,7 +1971,7 @@ function runSnapshot(){
 function applyRunState(s){
   if(!s || (s.v!==1 && s.v!==2 && s.v!==3)) return;
   cash = (typeof s.cash==='number') ? s.cash : cash;
-  displayedCash = cash; cashNumEl.textContent = String(Math.round(cash));
+  displayedCash = cash; cashNumEl.textContent = fmtNum(cash);
   day = s.day|0 || 1; goalIdx = s.goalIdx|0;
   marginLvl = Math.max(0, s.marginLvl|0); branches = Math.max(0, s.branches|0);
   level = 1 + branches;                                  // prestige tier is driven by branches now (rent scaling)
@@ -2039,7 +2039,7 @@ function renderLB(rows){
     const nm=document.createElement('span'); nm.className='nm'; nm.textContent=r.name;
     row.innerHTML=`<span class="rk">${rank}</span>`; row.appendChild(av); row.appendChild(nm);
     if(r.isMe){ const me=document.createElement('span'); me.className='me-tag'; me.textContent=t('lb_you'); row.appendChild(me); }
-    const sc=document.createElement('span'); sc.className='sc'; sc.textContent='¥'+r.score; row.appendChild(sc);
+    const sc=document.createElement('span'); sc.className='sc'; sc.textContent='¥'+fmtNum(r.score); row.appendChild(sc);
     if(!r.isMe && r.id) row.addEventListener('click', ()=>A.openAigramProfile(r.id));
     lbBodyEl.appendChild(row);
   });
@@ -2053,6 +2053,24 @@ lbBtnEl.addEventListener('click', openLB);
 lbCloseEl.addEventListener('click', ()=>lbEl.classList.remove('show'));
 lbEl.addEventListener('click', e=>{ if(e.target===lbEl) lbEl.classList.remove('show'); });
 
+// compact magnitude formatter — keeps full digits under 10K, then K/M/B with smart decimals so
+// the HUD cash chip + goal banners don't blow out the layout once cash runs into 6-7 figures.
+// preserves sign (bankruptcy shows "-50"); ¥ prefix stays at the call site.
+function fmtNum(n){
+  const neg = n < 0; n = Math.round(Math.abs(n));
+  // strip trailing zeros only when toFixed produced a decimal point — otherwise "100" would become "1"
+  const stripZ = s => s.includes('.') ? s.replace(/0+$/,'').replace(/\.$/,'') : s;
+  let body;
+  if(n < 10000) body = String(n);
+  else { let v = n/1000;
+    if(v < 999.5) body = stripZ(v < 99.95 ? v.toFixed(1) : v.toFixed(0)) + 'K';
+    else { v = n/1e6;
+      if(v < 999.5) body = stripZ(v < 9.995 ? v.toFixed(2) : v < 99.95 ? v.toFixed(1) : v.toFixed(0)) + 'M';
+      else body = stripZ((n/1e9).toFixed(1)) + 'B';
+    }
+  }
+  return neg ? '-'+body : body;
+}
 function addCash(n){ cash += n; }                                              // animator lerps displayedCash → cash
 function setCombo(n){ combo=n; if(n>=3){ comboEl.textContent=t('combo',{n}); comboEl.classList.add('show'); } else comboEl.classList.remove('show'); }
 function setDayLabel(){
@@ -2075,6 +2093,7 @@ function popText(worldPos, txt, cls){
 }
 setClock(DAY_LENGTH);
 setDayLabel();
+cashNumEl.textContent = fmtNum(cash);                                          // sync HUD with the live START_CASH (handles fresh / no-save / non-Aigram cases)
 restoreOnBoot();                                                               // platform: resume cash/day/upgrades/staff/hiScore from a prior session
 openOpening();                                                                 // start gate: pick today's主打 before the shift runs
 
@@ -2156,11 +2175,11 @@ const WORKER_ICON = 'data:image/svg+xml,' + encodeURIComponent(
 function hireCost(){ return 30 + Math.max(0, clerks.length-1)*20; }   // first hire cheap, scaling up (opening floor = 1 clerk)
 function refreshHire(){
   const cost = hireCost();
-  hireEl.querySelector('.cost').textContent = '¥'+cost;
+  hireEl.querySelector('.cost').textContent = '¥'+fmtNum(cost);
   hireEl.classList.toggle('broke', cash < cost);
   staffNEl.querySelector('b').textContent = clerks.length;          // chip: live clerk count
   staffCountEl.textContent = clerks.length;                         // modal: big count
-  staffWageEl.textContent = '-¥'+CLERK_WAGE;                        // modal: per-clerk daily wage
+  staffWageEl.textContent = '-¥'+fmtNum(CLERK_WAGE);                // modal: per-clerk daily wage
   fireEl.classList.toggle('dim', clerks.length <= 1);               // can't dismiss the last clerk
 }
 function hireClerk(){
@@ -2169,7 +2188,7 @@ function hireClerk(){
   if(cash < cost){ hireEl.classList.remove('nope'); void hireEl.offsetWidth; hireEl.classList.add('nope'); blip(300,0.08,'square'); return; }
   addCash(-cost); dayHire += cost;                    // hiring fee → folds into the receipt's 人力 line
   spawnClerk(true);                                   // new clerk walks in through the door
-  popText(DOOR.clone().setY(2.2),t('hired',{n:cost}),'bad'); blip(820,0.08);
+  popText(DOOR.clone().setY(2.2),t('hired',{n:fmtNum(cost)}),'bad'); blip(820,0.08);
   refreshHire();
 }
 hireEl.addEventListener('click', hireClerk);
@@ -2405,7 +2424,7 @@ function cycleAmbient(at){
 // ── milestone goal progress (current net-worth tier) ──
 function renderGoal(){
   const g = goalAt(goalIdx);
-  goalTxtEl.textContent=t('goal_lbl')+' ¥'+g; goalNowEl.textContent=t('net')+' ¥'+Math.max(0,cash);
+  goalTxtEl.textContent=t('goal_lbl')+' ¥'+fmtNum(g); goalNowEl.textContent=t('net')+' ¥'+fmtNum(Math.max(0,cash));
   goalFillEl.style.width = Math.max(0, Math.min(1, cash/g))*100 + '%';
 }
 
@@ -2413,17 +2432,17 @@ function renderGoal(){
 let finOpen = false;
 let staffOpen = false;
 function renderFin(){
-  finCashEl.textContent = String(Math.round(cash));
-  finRevEl.textContent  = '¥'+(dayRevenue - dayCoffee - dayRack);   // shelves + fridges only; attach revenue is broken out below
-  finCoffeeEl.textContent = '¥'+dayCoffee;
-  finRackEl.textContent   = '¥'+dayRack;
+  finCashEl.textContent = fmtNum(cash);
+  finRevEl.textContent  = '¥'+fmtNum(dayRevenue - dayCoffee - dayRack);   // shelves + fridges only; attach revenue is broken out below
+  finCoffeeEl.textContent = '¥'+fmtNum(dayCoffee);
+  finRackEl.textContent   = '¥'+fmtNum(dayRack);
   finCoffeeRowEl.style.display = (owned.coffee||0)>0 ? '' : 'none';  // only surface a fixture you actually own
   finRackRowEl.style.display   = (owned.rack||0)>0   ? '' : 'none';
-  finCostEl.textContent = '-¥'+dayRestock;
-  finRentEl.textContent = '-¥'+rentFor();                // both settle out of the till at day close
-  finWageEl.textContent = '-¥'+(clerks.length*CLERK_WAGE);
+  finCostEl.textContent = '-¥'+fmtNum(dayRestock);
+  finRentEl.textContent = '-¥'+fmtNum(rentFor());        // both settle out of the till at day close
+  finWageEl.textContent = '-¥'+fmtNum(clerks.length*CLERK_WAGE);
   const g = goalAt(goalIdx);
-  finGoalTxtEl.textContent=t('goal_lbl')+' ¥'+g; finGoalNowEl.textContent=t('net')+' ¥'+Math.max(0,cash);
+  finGoalTxtEl.textContent=t('goal_lbl')+' ¥'+fmtNum(g); finGoalNowEl.textContent=t('net')+' ¥'+fmtNum(Math.max(0,cash));
   finGoalFillEl.style.width = Math.max(0, Math.min(1, cash/g))*100 + '%';
 }
 function openFin(){ if(bankrupt) return; finOpen=true; renderFin(); finpanelEl.classList.add('show'); }
@@ -2456,15 +2475,15 @@ function endOfDay(){
   else { stampEl.textContent='DAY '+day; }
   document.querySelector('#over .head').textContent = bankrupt ? t('head_liquidation')
     : (hitGoal!==null ? t('branch_head') : t('profit_head'));
-  document.getElementById('dayRev').textContent  = '¥'+dayRevenue;
-  document.getElementById('dayCost').textContent = '-¥'+dayRestock;
-  document.getElementById('dayWage').textContent = '-¥'+wage;
-  document.getElementById('dayRent').textContent = '-¥'+rent;
+  document.getElementById('dayRev').textContent  = '¥'+fmtNum(dayRevenue);
+  document.getElementById('dayCost').textContent = '-¥'+fmtNum(dayRestock);
+  document.getElementById('dayWage').textContent = '-¥'+fmtNum(wage);
+  document.getElementById('dayRent').textContent = '-¥'+fmtNum(rent);
   document.getElementById('custDone').textContent = String(custDone);
   document.getElementById('custLost').textContent = String(custLost);
   document.getElementById('hiScore').textContent = bankrupt
-    ? t('over_reached',{d:day, n:hiScore})
-    : t('over_best',{n:hiScore});
+    ? t('over_reached',{d:day, n:fmtNum(hiScore)})
+    : t('over_best',{n:fmtNum(hiScore)});
   // bankruptcy hides the goal bar; a solvent day shows the milestone progress
   document.getElementById('goal').style.display = bankrupt ? 'none' : '';
   document.getElementById('replay').textContent = bankrupt ? t('btn_replay')
@@ -2478,7 +2497,7 @@ function endOfDay(){
   const target = net, start = performance.now(), DUR = 900;
   function rollFinal(now){
     const k = Math.min(1, (now-start)/DUR), e = 1-Math.pow(1-k,3);
-    finalEl.textContent = String(Math.round(target*e));
+    finalEl.textContent = fmtNum(target*e);
     if(k<1) requestAnimationFrame(rollFinal);
     else blip(bankrupt?150:(hitGoal!==null?990:880), 0.18, bankrupt?'square':'sine');
   }
@@ -2509,7 +2528,7 @@ function rebuildStore(){
 }
 function resetRun(){                                    // bankrupt → wipe everything back to a fresh DAY 1
   bankrupt=false; overEl.classList.remove('bust');
-  cash=START_CASH; displayedCash=START_CASH; cashNumEl.textContent=String(START_CASH);
+  cash=START_CASH; displayedCash=START_CASH; cashNumEl.textContent=fmtNum(START_CASH);
   day=0; goalIdx=0; level=1; marginLvl=0; branches=0;
   owned = Object.assign({}, EQUIP_START); unlockLog = []; branchPending=false; fantasyUnlocked=false;   // back to the opening loadout
   // hire fees & extra clerks reset: shed clerks back down to the opening one
@@ -2573,7 +2592,7 @@ function tick(){
     const step = Math.max(1, Math.abs(diff)*Math.min(1, dt*8));
     displayedCash += Math.sign(diff)*Math.min(Math.abs(diff), step);
     if(Math.abs(cash-displayedCash) < 0.5) displayedCash = cash;
-    cashNumEl.textContent = String(Math.round(displayedCash));
+    cashNumEl.textContent = fmtNum(displayedCash);
     refreshHire();                                     // keep the hire pill's affordability state live
   }
 
@@ -2682,8 +2701,8 @@ function tick(){
           const rk = Math.round(rackSale() * branchMult());
           if(rk>0){ addCash(rk); dayRevenue += rk; dayRack += rk; gain += rk; }
           if(c.tidy){ tidyHits+=1; setCombo(combo+1); const bonus=2+Math.floor(combo/3)*2; addCash(bonus); dayRevenue+=bonus; gain+=bonus;
-            popText(c.g.position.clone().setY(2.4),'+¥'+gain,'tidy'); sfxCash(combo); }
-          else { popText(c.g.position.clone().setY(2.4),'+¥'+gain,'cash'); sfxCash(0); }
+            popText(c.g.position.clone().setY(2.4),'+¥'+fmtNum(gain),'tidy'); sfxCash(combo); }
+          else { popText(c.g.position.clone().setY(2.4),'+¥'+fmtNum(gain),'cash'); sfxCash(0); }
           c.phase='leaveHappy'; routeToExit(c);
         }
       }
