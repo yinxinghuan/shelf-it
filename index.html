@@ -1844,7 +1844,7 @@ function rentFor(){ return Math.round(RENT_BASE*(1 + RENT_LEVEL*(level-1)) + REN
 // more upgrade ahead. goalAt(0)=60, (1)=138, (2)=239, (3)=371 … cumulative net worth.
 function goalAt(i){ return Math.round(60 * (Math.pow(1.3, (i|0)+1) - 1) / 0.3); }
 const BRANCH_EVERY = 6;   // every Nth upgrade the card also offers an OPTIONAL new branch
-const FANTASY_AT   = 4;   // from this milestone on, the card offers the one-time "after dark" fantasy unlock
+const FANTASY_AT   = 1;   // from this milestone on, the card offers the one-time "after dark" fantasy unlock
 let bankrupt=false;
 // ── store stats are driven entirely by the fixtures you own (#61 — the old buy-a-level levers were folded in here) ──
 function drawUnits(){ return (owned.shelf||0)+(owned.fridge||0)+(owned.coffee||0)+(owned.rack||0); }  // total pull of the floor
