@@ -1912,13 +1912,14 @@ const START_CASH = 30;                         // tight opening — day 1 has to
 const CLERK_WAGE = 18;                          // each clerk's daily wage, settled at end of day
 // ── rent scales with the STORE you run, not the calendar: a sparse new branch pays little, a big floor pays a lot.
 //    (Calendar rent was the death-spiral — opening a fresh branch on day-N inherited day-N's huge rent with day-1 capacity.)
-const RENT_BASE = 18, RENT_PER_UNIT = 9, RENT_LEVEL = 0.18;   // base + per-fixture floor cost + a small per-branch prestige premium — each new fixture has to earn its rent back
+const RENT_BASE = 18, RENT_PER_UNIT = 11, RENT_LEVEL = 0.18;  // base + per-fixture floor cost + a small per-branch prestige premium — each new fixture has to earn its rent back
 function rentFor(){ return Math.round(RENT_BASE*(1 + RENT_LEVEL*(level-1)) + RENT_PER_UNIT*drawUnits()); }
 // ── endless milestone goals (net-worth tiers) ──────────────────────────────────
-// Steeper 1.42× growth so later tiers really stretch the store's earnings instead of being cleared
-// by carryover cash alone. Geometric sum keeps the smooth ramp; no cap → always one more upgrade ahead.
-// goalAt(0)=60, (1)=145, (2)=266, (3)=438, (4)=682, (5)=1028, (10)≈6630 (vs old 3384).
-function goalAt(i){ return Math.round(60 * (Math.pow(1.42, (i|0)+1) - 1) / 0.42); }
+// Steeper 1.55× growth so later tiers really stretch the store's earnings instead of being cleared
+// by carryover cash alone (1.42 still let cash-growth outpace goal-growth → "cash already past next goal
+// at start of every day"). Geometric sum keeps the smooth ramp; no cap → always one more upgrade ahead.
+// goalAt(0)=60, (1)=153, (2)=297, (3)=521, (4)=867, (5)=1404, (7)=3528, (10)≈13200.
+function goalAt(i){ return Math.round(60 * (Math.pow(1.55, (i|0)+1) - 1) / 0.55); }
 const BRANCH_EVERY = 6;   // every Nth upgrade the card also offers an OPTIONAL new branch
 const FANTASY_AT   = 1;   // from this milestone on, the card offers the one-time "after dark" fantasy unlock
 let bankrupt=false;
