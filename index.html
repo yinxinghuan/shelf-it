@@ -217,28 +217,31 @@
     font-family:var(--comic);font-size:17px;font-weight:400;letter-spacing:.06em;color:#9a8d7c;}
   /* ── opening: pick today's headliner (one tap, then the shift runs) ── */
   #opening,#unlock{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
-    gap:24px;background:rgba(21,17,14,.42);z-index:24;}
+    gap:0;background:radial-gradient(125% 85% at 50% 20%,rgba(21,17,14,.30),rgba(21,17,14,.58));z-index:24;}
   #opening.show,#unlock.show{display:flex;}
   #unlock{background:rgba(21,17,14,.62);z-index:26;}
-  #opening .otitle,#unlock .otitle{font-family:var(--comic);color:var(--yellow);font-size:28px;font-weight:400;letter-spacing:.06em;
-    -webkit-text-stroke:2.5px var(--ink);paint-order:stroke fill;text-align:center;transform:rotate(-3deg);}
+  /* demoted title — a small kicker sitting tight under the oversized logo */
+  #opening .otitle,#unlock .otitle{font-family:var(--comic);color:var(--yellow);font-size:21px;font-weight:400;letter-spacing:.05em;
+    -webkit-text-stroke:1.8px var(--ink);paint-order:stroke fill;text-align:center;transform:rotate(-1.5deg);
+    margin-bottom:24px;animation:opFade .4s ease .12s backwards;}
   #opening .otitle small,#unlock .otitle small{display:block;font-family:-apple-system,"PingFang SC",sans-serif;
-    font-size:11px;font-weight:800;letter-spacing:.1em;color:#fff;-webkit-text-stroke:0;
-    margin-top:8px;transform:rotate(3deg);}
-  #opening .opicks,#unlock .opicks{display:flex;gap:16px;}
-  #opening .opick,#unlock .opick{pointer-events:auto;width:104px;height:124px;border:4px solid var(--ink);cursor:pointer;border-radius:20px;
+    font-size:11px;font-weight:800;letter-spacing:.1em;color:rgba(255,255,255,.82);-webkit-text-stroke:0;
+    margin-top:7px;transform:rotate(1.5deg);}
+  #opening .opicks,#unlock .opicks{display:flex;gap:18px;}
+  #opening .opick,#unlock .opick{pointer-events:auto;width:114px;height:140px;border:4px solid var(--ink);cursor:pointer;border-radius:22px;
     background:var(--paper);
-    box-shadow:5px 5px 0 var(--ink);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    box-shadow:6px 6px 0 var(--ink);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;
     transition:transform .14s cubic-bezier(.4,1.6,.5,1),box-shadow .14s;-webkit-touch-callout:none;
-    animation:opIn .3s cubic-bezier(.4,1.3,.5,1) backwards;}
-  #opening .opick:nth-child(2),#unlock .opick:nth-child(2){animation-delay:.06s;}
-  #opening .opick:nth-child(3),#unlock .opick:nth-child(3){animation-delay:.12s;}
+    animation:opIn .34s cubic-bezier(.4,1.3,.5,1) .22s backwards;}
+  #opening .opick:nth-child(2),#unlock .opick:nth-child(2){animation-delay:.3s;}
+  #opening .opick:nth-child(3),#unlock .opick:nth-child(3){animation-delay:.38s;}
   @keyframes opIn{from{transform:translateY(30px) scale(.9);opacity:0;}to{transform:none;opacity:1;}}
+  @keyframes opFade{from{opacity:0;transform:rotate(-1.5deg) translateY(-8px);}to{opacity:1;}}
   #opening .opick:active,#unlock .opick:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink);}
-  #opening .opick .sil,#unlock .opick .sil{width:64px;height:64px;background-size:contain;background-position:center;background-repeat:no-repeat;
+  #opening .opick .sil,#unlock .opick .sil{width:74px;height:74px;background-size:contain;background-position:center;background-repeat:no-repeat;
     filter:drop-shadow(2px 2px 0 rgba(21,17,14,.25));}
-  #opening .opick .lbl,#unlock .opick .lbl{font-size:14px;font-weight:800;color:var(--ink);letter-spacing:.04em;}
+  #opening .opick .lbl,#unlock .opick .lbl{font-size:15px;font-weight:800;color:var(--ink);letter-spacing:.04em;}
   #unlock .opick .cnt{font-size:10px;font-weight:800;color:var(--ink);opacity:.6;letter-spacing:.04em;margin-top:-4px;}
   /* optional "new branch" pick — teal-flagged so it reads as a special, skippable choice */
   #unlock .opick.branch{border-color:var(--teal);background:linear-gradient(180deg,#e7fbf8,var(--paper));box-shadow:5px 5px 0 var(--tealD);}
@@ -266,8 +269,9 @@
     color:var(--yellow);white-space:nowrap;}
   .brandmark .b1,.brandmark .b2,.brandmark .dot{color:var(--yellow);}
   .brandmark .dot{margin:0 .02em;}
-  #opening .brandmark,#unlock .brandmark{font-size:52px;transform:rotate(-2deg);margin-bottom:8px;
-    text-shadow:5px 6px 0 var(--red);}
+  #opening .brandmark,#unlock .brandmark{font-size:104px;transform:rotate(-3deg);margin-bottom:4px;
+    text-shadow:7px 9px 0 var(--red);animation:brandPop .46s cubic-bezier(.34,1.56,.5,1) backwards;}
+  @keyframes brandPop{from{transform:rotate(-3deg) translateY(-26px) scale(.8);opacity:0;}to{opacity:1;}}
   #over .brandmark{font-size:27px;transform:rotate(-2deg);margin:2px auto 5px;
     display:flex;justify-content:center;text-shadow:3px 4px 0 var(--red);}
   /* ── today's headliner chip (HUD) ── */
@@ -278,19 +282,43 @@
   #headliner.show{display:flex;}
   #headliner .star{width:16px;height:16px;flex:0 0 auto;}
   #headliner .hsil{width:20px;height:20px;background-size:contain;background-position:center;background-repeat:no-repeat;flex:0 0 auto;}
-  /* ── visual hire button (no menu) ── */
-  #hire{position:fixed;left:12px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:13;
-    display:none;align-items:center;gap:8px;padding:8px 16px 8px 10px;border:3px solid var(--ink);cursor:pointer;border-radius:999px;
-    background:var(--paper);color:var(--ink);font-size:13px;font-weight:800;letter-spacing:.02em;
-    box-shadow:3px 3px 0 var(--ink);
-    transition:transform .12s,box-shadow .12s,opacity .2s;-webkit-touch-callout:none;}
-  #hire.show{display:flex;}
-  #hire:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);}
-  #hire.broke{opacity:.5;}
-  #hire .who{width:26px;height:26px;flex:0 0 auto;}
-  #hire .cost{font-family:var(--comic);font-size:17px;color:var(--tealD);letter-spacing:.02em;}
+  /* ── staff bar: clerk count chip + dismiss + hire (no menu) ── */
+  #staff{position:fixed;left:12px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:13;
+    display:none;-webkit-touch-callout:none;}
+  #staff.show{display:block;}
+  #staffN{display:inline-flex;align-items:center;gap:6px;padding:6px 14px 6px 8px;border:3px solid var(--ink);border-radius:999px;
+    background:var(--paper);color:var(--ink);box-shadow:3px 3px 0 var(--ink);cursor:pointer;
+    font-family:var(--comic);font-size:18px;letter-spacing:.02em;
+    transition:transform .12s,box-shadow .12s;-webkit-touch-callout:none;}
+  #staffN:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);}
+  #staffN .wico{width:24px;height:24px;flex:0 0 auto;background-size:contain;background-position:center;background-repeat:no-repeat;}
+  /* ── staff modal ── */
+  #staffpanel{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(21,17,14,.42);z-index:25;padding:20px;}
+  #staffpanel.show{display:flex;}
+  #staffpanel .scard{pointer-events:auto;background:var(--paper);background-image:var(--halftone);background-size:7px 7px;
+    border:4px solid var(--ink);border-radius:18px;padding:22px 24px 18px;min-width:250px;max-width:316px;
+    box-shadow:7px 7px 0 var(--ink);text-align:center;}
+  #staffpanel .shd{font-size:12px;letter-spacing:.22em;color:#7a6f62;font-weight:800;}
+  #staffpanel .snum{font-family:var(--comic);font-size:56px;color:var(--ink);text-shadow:3px 3px 0 var(--teal);line-height:1;margin:2px 0 0;font-variant-numeric:tabular-nums;}
+  #staffpanel .ssub{font-size:10px;letter-spacing:.16em;color:#9a8d7c;font-weight:800;text-transform:uppercase;margin:2px 0 12px;}
+  #staffpanel .sdesc{font-size:12.5px;line-height:1.5;color:#6a5f52;font-weight:600;margin:0 0 12px;}
+  #staffpanel .srow{display:flex;justify-content:space-between;font-size:13px;color:#5a4f44;font-weight:700;margin:0 0 16px;}
+  #staffpanel .srow b{color:var(--red);font-weight:800;}
+  #staffpanel .sbtns{display:flex;gap:10px;}
+  #staffpanel .sbtn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 8px;
+    border:3px solid var(--ink);border-radius:13px;cursor:pointer;font-size:13px;font-weight:800;letter-spacing:.02em;
+    box-shadow:3px 3px 0 var(--ink);transition:transform .12s,box-shadow .12s,opacity .2s;-webkit-touch-callout:none;}
+  #staffpanel .sbtn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);}
+  #staffpanel .shire{background:var(--yellow);color:var(--ink);}
+  #staffpanel .shire .cost{font-family:var(--comic);font-size:16px;letter-spacing:.02em;}
+  #staffpanel .shire.broke{opacity:.5;}
+  #staffpanel .sfire{background:var(--paper);color:var(--ink);}
+  #staffpanel .sfire.dim{opacity:.4;pointer-events:none;}
   @keyframes hireNope{0%,100%{transform:translateX(0);}20%{transform:translateX(-5px);}60%{transform:translateX(5px);}}
-  #hire.nope{animation:hireNope .3s;}
+  #staffpanel .sbtn.nope{animation:hireNope .3s;}
+  #staffpanel #staffClose{display:block;margin:14px auto 0;background:none;border:none;cursor:pointer;
+    font-family:var(--comic);font-size:17px;font-weight:400;letter-spacing:.06em;color:#9a8d7c;}
   /* ── leaderboard ── */
   .lblink{pointer-events:auto;display:none;margin:10px auto 0;background:none;border:none;cursor:pointer;
     font-family:-apple-system,"PingFang SC",sans-serif;font-size:13px;font-weight:800;letter-spacing:.04em;
@@ -410,10 +438,21 @@
   <div class="hsil"></div>
   <span class="htxt" data-i18n="headliner">Headliner</span>
 </div>
-<button id="hire">
-  <span class="who"></span>
-  <span class="lbl"><span data-i18n="hire">Hire clerk</span> <span class="cost">¥30</span></span>
-</button>
+<div id="staff">
+  <button id="staffN" data-i18n-title="staff_count"><span class="wico"></span><b>2</b></button>
+</div>
+<div id="staffpanel"><div class="scard">
+  <div class="shd" data-i18n="staff_title">STAFF</div>
+  <div class="snum" id="staffCount">2</div>
+  <div class="ssub" data-i18n="staff_count">clerks on duty</div>
+  <p class="sdesc" data-i18n="staff_desc">Clerks roam the floor and restock empty shelves on their own. Each draws a daily wage.</p>
+  <div class="srow"><span data-i18n="staff_wage">Wage each · per day</span><b id="staffWage">-¥18</b></div>
+  <div class="sbtns">
+    <button id="hire" class="sbtn shire"><span data-i18n="hire">Hire clerk</span> <span class="cost">¥30</span></button>
+    <button id="fire" class="sbtn sfire"><span data-i18n="fire">Dismiss</span></button>
+  </div>
+  <button id="staffClose" data-i18n="btn_close">Close</button>
+</div></div>
 
 <script type="importmap">
 { "imports": {
@@ -440,7 +479,8 @@ const I18N = {
   en: {
     catpanel_title:'WHAT DOES THIS SHELF SELL?', clock_cap:'OPEN', day_phase_open:'Open', day_phase_pre:'Opening soon',
     profit_head:'TODAY’S PROFIT', row_rev:'Revenue', row_cost:'Cost of goods', row_wage:'Wages', row_rent:'Rent', row_sales:'Sold · Walkouts',
-    btn_next:'Next Day', btn_replay:'Restart', btn_lb:'Leaderboard', btn_close:'Close', hire:'Hire clerk',
+    btn_next:'Next Day', btn_replay:'Restart', btn_lb:'Leaderboard', btn_close:'Close', hire:'Hire clerk', fire:'Dismiss', staff_count:'Clerks on duty', fired:'Dismissed', last_clerk:'Keep at least one clerk',
+    staff_title:'STAFF', staff_desc:'Clerks roam the floor and restock empty shelves on their own. Each draws a daily wage.', staff_wage:'Wage each · per day',
     btn_restart:'Start over', restart_confirm:'Tap again to wipe progress',
     lb_title:'NET WORTH', lb_sub:'best net worth', lb_player:'Player', lb_you:'YOU', lb_loading:'Loading…', lb_empty:'No ranks yet · survive today to make the board',
     open_title:'TODAY’S HEADLINER', open_sub:'pick a category · shoppers crave it · sells for more', headliner:'Headliner',
@@ -460,7 +500,8 @@ const I18N = {
   zh: {
     catpanel_title:'这个货架卖什么', clock_cap:'营业', day_phase_open:'营业中', day_phase_pre:'准备开门',
     profit_head:'今日净利', row_rev:'营业额', row_cost:'售出成本', row_wage:'人力开支', row_rent:'租金', row_sales:'成交 · 走单',
-    btn_next:'明天继续', btn_replay:'重开', btn_lb:'查看排行榜', btn_close:'关闭', hire:'雇店员',
+    btn_next:'明天继续', btn_replay:'重开', btn_lb:'查看排行榜', btn_close:'关闭', hire:'雇店员', fire:'解雇', staff_count:'在岗店员', fired:'已解雇', last_clerk:'至少留一名店员',
+    staff_title:'店员', staff_desc:'店员会在店里自动巡场、补满空货架。每名店员每天领一份工钱。', staff_wage:'每人 · 每日工钱',
     btn_restart:'从头开始', restart_confirm:'再点一次清空存档',
     lb_title:'资产排行榜', lb_sub:'历史最高资产', lb_player:'玩家', lb_you:'你', lb_loading:'载入中…', lb_empty:'还没有排名 · 撑过今天上榜',
     open_title:'今天主打什么', open_sub:'选一个品类 · 顾客更想买 · 卖得更贵', headliner:'主打',
@@ -489,6 +530,7 @@ function t(key, vars){
 }
 document.documentElement.lang = LOCALE;
 document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.getAttribute('data-i18n-title')); });
 
 // ── stage (locked premium look; we drive our own game loop) ──
 const stage = createStage(document.getElementById('c'),
@@ -1208,12 +1250,15 @@ function animateCashier(dt){
 const tills = [{ pos:new THREE.Vector3(2.4, 0, -3.55), cashier }];   // base lane uses the structural cashier
 const extraCashiers = [];
 const EXTRA_CHECKOUTS = [
-  { x:-3.0, z:-HZ+1.35, ry:0, stand:new THREE.Vector3(-2.4, 0, -3.4), cashier:'worker' },   // mirror lane, west of the door
+  // 2nd lane: east wall, in the empty gap just below the coffee machine, rotated to face into the store (-x)
+  { x:5.3, z:-1.3, ry:-Math.PI/2, obs:[0.45,0.7], cashier:'worker',
+    cashierPos:new THREE.Vector3(5.85, 0, -1.3), stand:new THREE.Vector3(4.5, 0, -1.3) },
 ];
 function placeExtraCheckout(cfg){
-  place(PROPS.checkout, cfg.x, cfg.z, cfg.ry, 1.25, [0.7,0.45]);
+  place(PROPS.checkout, cfg.x, cfg.z, cfg.ry, 1.25, cfg.obs || [0.7,0.45]);
   const ca = CHARACTERS[cfg.cashier](); ca.scale.setScalar(0.66);
-  ca.position.set(cfg.x, 0, cfg.z-0.6); ca.rotation.y = cfg.ry; store.add(ca);
+  const cp = cfg.cashierPos || new THREE.Vector3(cfg.x, 0, cfg.z-0.6);
+  ca.position.copy(cp); ca.rotation.y = cfg.ry; store.add(ca);
   ca.userData.t = Math.random()*6; ca.userData.pulse = 0;
   extraCashiers.push(ca);
   tills.push({ pos:cfg.stand, cashier:ca });
@@ -1435,14 +1480,18 @@ const EQUIP = {
     () => buildWallRun( HX-0.45, 1.8, -Math.PI/2, 4.0),
     () => buildWallRun(-4.2, -HZ+0.45, 0, 3.4),
   ],
+  // interleaved so each fridge upgrade rotates cooler → freezer → produce-bin:
+  // a given owned.fridge count always yields a MIX of the three cold-fixture types
+  // (the old flat [4 coolers, 2 freezers, 4 bins] order buried freezers/bins so deep
+  //  they effectively never appeared, and a saved count could resolve to all-coolers).
   fridge: [
     () => buildCooler(-6.0, -1.65, Math.PI/2),
     () => buildCooler(-6.0, -0.55, Math.PI/2),
+    () => buildChestFreezer(-6.05, -3.5, Math.PI/2),
+    () => buildProduceBin( 3.1,  1.6),
     () => buildCooler(-6.0,  0.55, Math.PI/2),
     () => buildCooler(-6.0,  1.65, Math.PI/2),
-    () => buildChestFreezer(-6.05, -3.5, Math.PI/2),
     () => buildChestFreezer(-6.05,  3.5, Math.PI/2),
-    () => buildProduceBin( 3.1,  1.6),
     () => buildProduceBin( 3.1, -1.6),
     () => buildProduceBin(-3.1,  1.6),
     () => buildProduceBin(-3.1, -1.6),
@@ -1745,6 +1794,7 @@ function routeToExit(c){
 // ─────────────────────────────────────────────────────────────────────────────
 const clerks = [];
 let avoidAgents = null;                                   // rebuilt each frame = customers + clerks (shared separation)
+let staffClock = 0;                                       // monotonic clock for clerk cooldowns (slot.failUntil / clerk.restUntil)
 // clerks idle in SCATTERED foreground pockets (not a line) — down in the south, well clear of the north door funnel,
 // both checkouts and the island/cooler shopping lanes. Two opening clerks land in opposite south corners.
 const CLERK_HOMES = [
@@ -1773,17 +1823,38 @@ function findRestockSlot(k){
   let best=null, bd=1e9, bestRush=-1;
   for(const s of slots){
     if(s.filled || !s.assignedCat || (s.clerkClaim && s.clerkClaim!==k)) continue;
+    if(s.failUntil && s.failUntil > staffClock) continue;      // a clerk recently failed to reach this slot — let it cool off (anti-thrash)
     const d=Math.hypot(s.standPos.x-k.g.position.x, s.standPos.z-k.g.position.z);
     if(s.rush>bestRush || (s.rush===bestRush && d<bd)){ bestRush=s.rush; bd=d; best=s; }
   }
   return best;
 }
+// give up the slot a clerk is heading to, cool it off so the clerk (and others)
+// pick a DIFFERENT shelf for a few seconds, and send this clerk home to reset.
+function bailClerk(k){
+  if(k.slot){ k.slot.clerkClaim=null; k.slot.failUntil = staffClock + 5; k.slot=null; }
+  k.phase='idle'; k.path=[]; k.goT=0; k._frozen=0; k.restUntil = staffClock + 2.5;
+  routeClerk(k, k.home); clearStuck(k);
+}
 function updateClerks(dt){
+  staffClock += dt;
   avoidAgents = customers.concat(clerks);
   for(const k of clerks){
+    // ── global freeze watchdog (all moving phases): if a clerk that SHOULD be moving
+    // makes almost no net progress for ~3s it's wedged (e.g. pinned in the door crowd) →
+    // hard reset: drop the claim, cool the slot, walk home. Stationary 'stock' is exempt.
+    const shouldMove = k.phase==='go' || (k.phase==='idle' && k.path.length);
+    k._wT = (k._wT||0) + dt;
+    if(k._wT >= 1.0){
+      const moved = Math.hypot(k.g.position.x-(k._wx??k.g.position.x), k.g.position.z-(k._wz??k.g.position.z));
+      if(shouldMove && moved < 0.25) k._frozen = (k._frozen||0) + k._wT; else k._frozen = 0;
+      k._wx = k.g.position.x; k._wz = k.g.position.z; k._wT = 0;
+    }
+    if(k._frozen >= 3){ bailClerk(k); continue; }
+
     if(k.phase==='idle'){
-      const s=findRestockSlot(k);
-      if(s){ s.clerkClaim=k; k.slot=s; routeClerk(k, s.standPos); k.phase='go'; }
+      const s = (k.restUntil && k.restUntil > staffClock) ? null : findRestockSlot(k);   // honor the post-bail cooldown
+      if(s){ s.clerkClaim=k; k.slot=s; routeClerk(k, s.standPos); k.phase='go'; clearStuck(k); }
       else {                                              // drift back toward the home spot, then stand
         if(!k.path.length){ const d=Math.hypot(k.home.x-k.g.position.x,k.home.z-k.g.position.z); if(d>0.35) k.path=[{x:k.home.x,z:k.home.z}]; }
         if(k.path.length) follow(k,1.6,dt); else restLimbs(k,dt);
@@ -1791,9 +1862,7 @@ function updateClerks(dt){
     } else if(k.phase==='go'){
       if(k.slot.filled || !k.slot.assignedCat){ k.slot.clerkClaim=null; k.slot=null; k.phase='idle'; k.path=[]; k.goT=0; continue; }
       k.goT = (k.goT||0) + dt;
-      if(k.goT > 8){                                  // backstop: never let a clerk hold a claim forever — release + re-pick
-        k.slot.clerkClaim=null; k.slot=null; k.phase='idle'; k.path=[]; k.goT=0; continue;
-      }
+      if(k.goT > 5){ bailClerk(k); continue; }         // backstop: never hold a claim forever — cool the slot + re-pick elsewhere
       if(follow(k,2.4,dt)){ k.phase='stock'; k.t=0; k.goT=0; }
     } else if(k.phase==='stock'){
       const s=k.slot; faceShelf(k,dt); restLimbs(k,dt);
@@ -1820,6 +1889,9 @@ const cashNumEl=document.getElementById('cashNum'), dayEl=document.getElementByI
       openingEl=document.getElementById('opening'), openPicksEl=openingEl.querySelector('.opicks'),
       unlockEl=document.getElementById('unlock'), unlockPicksEl=unlockEl.querySelector('.opicks'), unlockSubEl=document.getElementById('unlockSub'), unlockTitleEl=document.getElementById('unlockTitle'),
       headlinerEl=document.getElementById('headliner'), hireEl=document.getElementById('hire'),
+      staffEl=document.getElementById('staff'), fireEl=document.getElementById('fire'), staffNEl=document.getElementById('staffN'),
+      staffpanelEl=document.getElementById('staffpanel'), staffCloseEl=document.getElementById('staffClose'),
+      staffCountEl=document.getElementById('staffCount'), staffWageEl=document.getElementById('staffWage'),
       goalTxtEl=document.getElementById('goalTxt'), goalNowEl=document.getElementById('goalNow'),
       goalFillEl=document.getElementById('goalFill'),
       cashChipEl=document.getElementById('cash'), finpanelEl=document.getElementById('finpanel'),
@@ -2016,7 +2088,7 @@ function kickoffGame(){
   spawnTimer=0; elapsed=0; curPeriod=currentPeriod();
   // wipe any attract-mode demo customers so they don't suddenly count toward the player's day
   for(let i=customers.length-1;i>=0;i--){ removeCustomer(i); }
-  hireEl.classList.add('show'); refreshHire();
+  staffEl.classList.add('show'); refreshHire();
   setDayLabel();
 }
 // tap an empty shelf → RUSH it: clerks prioritize it and refill at 2× speed
@@ -2067,18 +2139,25 @@ catpanelEl.addEventListener('click', e=>{ if(e.target===catpanelEl) closeCatPane
 // ─────────────────────────────────────────────────────────────────────────────
 //  P5 — minimal opening (pick today's 主打) + visual hiring (no menu)
 // ─────────────────────────────────────────────────────────────────────────────
+// simple, unmistakable apron: a neck loop + bib-to-skirt silhouette nipped at a waist string
 const WORKER_ICON = 'data:image/svg+xml,' + encodeURIComponent(
-  `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='7' r='4.2' fill='#3fb6ac'/><path d='M3.5 22c0-5 3.8-8.4 8.5-8.4S20.5 17 20.5 22z' fill='#3fb6ac'/></svg>`);
-hireEl.querySelector('.who').style.backgroundImage = `url("${WORKER_ICON}")`;   // quote the data-URI: encodeURIComponent leaves raw ' which breaks unquoted url()
-hireEl.querySelector('.who').style.backgroundSize = 'contain';
-hireEl.querySelector('.who').style.backgroundRepeat = 'no-repeat';
-hireEl.querySelector('.who').style.backgroundPosition = 'center';
+  `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>`+
+  `<path d='M9.5 5 C9.5 2 14.5 2 14.5 5' fill='none' stroke='#3fb6ac' stroke-width='1.8'/>`+    // neck loop
+  `<path d='M9 5 H15 L15.6 11 L17.4 21 H6.6 L8.4 11 Z' fill='#3fb6ac'/>`+                        // bib + skirt
+  `<path d='M8.4 11 H15.6' stroke='#2c8079' stroke-width='1.5'/>`+                                // waist string
+  `</svg>`);
+{ const w = staffNEl.querySelector('.wico').style;            // clerk glyph on the count chip
+  w.backgroundImage = `url("${WORKER_ICON}")`; w.backgroundSize='contain'; w.backgroundRepeat='no-repeat'; w.backgroundPosition='center'; }
 
 function hireCost(){ return 30 + Math.max(0, clerks.length-2)*20; }   // first hires cheap, scaling up
 function refreshHire(){
   const cost = hireCost();
   hireEl.querySelector('.cost').textContent = '¥'+cost;
   hireEl.classList.toggle('broke', cash < cost);
+  staffNEl.querySelector('b').textContent = clerks.length;          // chip: live clerk count
+  staffCountEl.textContent = clerks.length;                         // modal: big count
+  staffWageEl.textContent = '-¥'+CLERK_WAGE;                        // modal: per-clerk daily wage
+  fireEl.classList.toggle('dim', clerks.length <= 1);               // can't dismiss the last clerk
 }
 function hireClerk(){
   if(!running || !started) return;
@@ -2090,11 +2169,29 @@ function hireClerk(){
   refreshHire();
 }
 hireEl.addEventListener('click', hireClerk);
+function fireClerk(){
+  if(!running || !started) return;
+  if(clerks.length <= 1){ fireEl.classList.remove('nope'); void fireEl.offsetWidth; fireEl.classList.add('nope'); blip(300,0.08,'square'); popText(DOOR.clone().setY(2.2), t('last_clerk'), 'bad'); return; }
+  const k = clerks.pop();                             // let go of the most-recently-hired clerk
+  if(k.slot){ k.slot.clerkClaim = null; }             // free any shelf it had claimed so another clerk can take it
+  const at = k.g.position.clone().setY(2.0);
+  scene.remove(k.g);
+  clerkSpot = Math.max(0, clerkSpot-1);               // free the home slot so a re-hire reuses it
+  popText(at, t('fired'), 'tidy'); blip(440,0.08,'square');
+  refreshHire();
+}
+fireEl.addEventListener('click', fireClerk);
+// the count chip is the only resting HUD element; tapping it opens the staff modal (status + price + actions)
+function openStaff(){ if(!running || !started) return; staffOpen=true; refreshHire(); staffpanelEl.classList.add('show'); }
+function closeStaff(){ staffOpen=false; staffpanelEl.classList.remove('show'); }
+staffNEl.addEventListener('click', e => { e.stopPropagation(); openStaff(); blip(560,0.05); });
+staffCloseEl.addEventListener('click', closeStaff);
+staffpanelEl.addEventListener('click', e => { if(e.target===staffpanelEl) closeStaff(); });   // tap dimmed backdrop to dismiss
 
 function openOpening(){
   headliner = null;
   headlinerEl.classList.remove('show');
-  hireEl.classList.remove('show');
+  staffEl.classList.remove('show'); staffpanelEl.classList.remove('show');
   // three distinct random categories to choose between
   const pool = CATS.slice(); for(let i=pool.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [pool[i],pool[j]]=[pool[j],pool[i]]; }
   const picks = pool.slice(0,3);
@@ -2227,6 +2324,7 @@ function renderGoal(){
 
 // ── live finances panel (tap the cash chip anytime: today's books + standing costs + goal) ──
 let finOpen = false;
+let staffOpen = false;
 function renderFin(){
   finCashEl.textContent = String(Math.round(cash));
   finRevEl.textContent  = '¥'+(dayRevenue - dayCoffee - dayRack);   // shelves + fridges only; attach revenue is broken out below
@@ -2379,7 +2477,7 @@ function ensureTidyBar(gd){
 
 function tick(){
   let dt=Math.min(clock.getDelta(),0.05);
-  if(finOpen) dt=0;                                    // books open → freeze the shift so checking the numbers is never a time trap
+  if(finOpen || staffOpen) dt=0;                       // books / staff panel open → freeze the shift so reading it is never a time trap
   controls.update(); updateTweens(dt); updateDust(dt); updateWalls(dt); animateCashier(dt); animateExtraCashiers(dt);
 
   // smooth cash counter (lerp displayed → real, like a register tally)

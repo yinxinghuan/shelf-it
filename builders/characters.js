@@ -174,10 +174,10 @@ export const CHARACTERS = {
     skirt:darken(P.coral,0.6), legskin:P.skinDk, shoes:P.ironD,
     hair:P.hairDark, hairStyle:'bun', collar:P.accent }),
 
-  // worker: deep skin, muted red cap, stone tee + wood pants, teal belt accent
+  // worker (shop clerk): deep skin, stone tee + wood pants, teal apron + matching teal cap (store uniform)
   worker: () => character({
     skin:P.skinDk, top:P.stone, sleeve:P.stone, bottom:P.woodD, shoes:P.ironD,
-    hair:P.hairDark, hairStyle:'short', hat:darken(P.red,0.5), belt:P.accent, bw:1.04 }),
+    hair:P.hairDark, hairStyle:'short', hat:P.accent, apron:P.accent, bw:1.04 }),
 
   // teen: tan skin, blond hair, muted red hoodie + dark shorts, teal CAP (shorter than an adult, taller than the kid)
   teen: () => character({
