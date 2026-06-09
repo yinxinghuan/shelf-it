@@ -1652,6 +1652,7 @@ function spawnCustomer(demo=false, forceWant=null){
 
   customers.push({ g, want, wishEl, wishRing:wishEl.querySelector('.r'),
     phase:'seek', t:0, bob:Math.random()*6, patience:6.0, slot:null, path:[], demo, lane });
+  if(!demo) sfxDoor();                                  // shopkeeper bell on real arrivals (skip attract-mode demo customers)
 }
 
 function swingLimbs(c){
@@ -2316,23 +2317,90 @@ function removeCustomer(i){
 }
 
 // tiny WebAudio (gameplay only → post first-touch, preload-safe)
-let actx=null;
+// signal chain: oscillator/noise → per-voice lowpass envelope → per-voice gain → master compressor → master gain → speakers
+let actx=null, bus=null;
+function ensureAudio(){
+  if(actx) return; try{
+    actx = new (window.AudioContext||window.webkitAudioContext)();
+    // compressor catches stacked cha-chings during a customer rush so the bus doesn't clip
+    const comp = actx.createDynamicsCompressor();
+    comp.threshold.value=-18; comp.knee.value=12; comp.ratio.value=4;
+    comp.attack.value=0.003; comp.release.value=0.12;
+    const mg = actx.createGain(); mg.gain.value=0.7;
+    comp.connect(mg); mg.connect(actx.destination);
+    bus = comp;
+    startAmbient();                                  // breathing fridge hum, only after first user-gesture sfx unlocks the context
+  }catch(e){ actx=null; }
+}
 function tone(freq,dur,type='sine',delay=0,peak=0.18){ try{
-  actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+  ensureAudio(); if(!actx) return;
   const t0=actx.currentTime+delay;
-  const o=actx.createOscillator(), g=actx.createGain(); o.type=type; o.frequency.value=freq;
-  o.connect(g); g.connect(actx.destination);
-  g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(peak,t0+0.01);
-  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur); o.start(t0); o.stop(t0+dur+0.02);
+  const o=actx.createOscillator(), g=actx.createGain(), f=actx.createBiquadFilter();
+  o.type=type; o.frequency.value=freq;
+  // per-note lowpass envelope (2.6 kHz → 560 Hz) turns a thin square/saw beep into a struck-then-decayed shape
+  f.type='lowpass'; f.Q.value=0.6;
+  f.frequency.setValueAtTime(2600,t0);
+  f.frequency.exponentialRampToValueAtTime(560, t0+dur);
+  o.connect(f); f.connect(g); g.connect(bus);
+  g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(peak,t0+0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur); o.start(t0); o.stop(t0+dur+0.04);
 }catch(e){} }
 function blip(freq,dur,type='sine'){ tone(freq,dur,type,0,0.18); }
+// short filtered noise burst — gives strikes their transient bite (drawer snap, paper thud, bell strike)
+function noise(dur, peak=0.1, delay=0, lpCut=4000){ try{
+  ensureAudio(); if(!actx) return;
+  const t0=actx.currentTime+delay;
+  const len = Math.max(1, Math.ceil(dur*actx.sampleRate));
+  const buf = actx.createBuffer(1, len, actx.sampleRate);
+  const ch = buf.getChannelData(0); for(let i=0;i<len;i++) ch[i] = Math.random()*2-1;
+  const s = actx.createBufferSource(); s.buffer = buf;
+  const f = actx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=lpCut; f.Q.value=0.5;
+  const g = actx.createGain();
+  g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(peak,t0+0.004);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  s.connect(f); f.connect(g); g.connect(bus); s.start(t0); s.stop(t0+dur+0.02);
+}catch(e){} }
 // ── distinct event palette: each store moment has its own pitch contour + timbre so they never blur ──
 function sfxRush(){ tone(560,0.05,'square',0,0.14); tone(740,0.06,'square',0.05,0.13); }                // player commands a restock — quick rising "go" tick
-function sfxStock(){ tone(300,0.045,'square',0,0.14); tone(232,0.06,'square',0.052,0.12); }            // shelf filled — dry low mechanical "tk-tk"
+function sfxStock(){ tone(300,0.045,'square',0,0.14); tone(232,0.06,'square',0.052,0.12);               // shelf filled — dry low "tk-tk"
+  noise(0.04, 0.07, 0, 2200); }                                                                          // …with a card-stock thud layered in
 function sfxGot(){ tone(1120,0.05,'triangle',0,0.16); }                                                 // customer grabs item — single bright high pop
 function sfxCash(combo=0){ tone(988,0.07,'triangle',0,0.2); tone(1319,0.1,'triangle',0.07,0.2);         // register — rising sparkly cha-ching
-  if(combo>1) tone(1568,0.1,'sine',0.155,0.15); }
+  noise(0.025, 0.09, 0, 6500);                                                                           // drawer snap (high white tick)
+  if(combo>1) tone(1568,0.1,'sine',0.155,0.15);
+  if(combo>3) tone(1976,0.12,'sine',0.21,0.13); }                                                        // combo ≥4: extra ring on top
 function sfxLost(){ tone(392,0.15,'sawtooth',0,0.16); tone(196,0.24,'sawtooth',0.13,0.16); }            // customer leaves empty-handed — low descending sad wah
+function sfxDoor(){                                                                                      // shopkeeper bell — perfect-fourth chime + tiny strike noise
+  tone(1568, 0.18, 'triangle', 0,    0.10);
+  tone(2093, 0.22, 'triangle', 0.02, 0.08);
+  noise(0.025, 0.05, 0, 7500);
+}
+// ── ambient fridge hum: must breathe (instant-play rule — no continuous bed; swell + silent gaps) ──
+let ambientStarted=false, ambientGain=null;
+function startAmbient(){
+  if(ambientStarted || !actx) return; ambientStarted = true;
+  // two low triangles, slightly detuned → slow chorus motion; lowpassed hard to remove fizz
+  const a = actx.createOscillator(); a.type='triangle'; a.frequency.value=58;
+  const b = actx.createOscillator(); b.type='triangle'; b.frequency.value=62;
+  const f = actx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=220; f.Q.value=0.4;
+  ambientGain = actx.createGain(); ambientGain.gain.value=0.0001;
+  a.connect(f); b.connect(f); f.connect(ambientGain); ambientGain.connect(bus);
+  a.start(); b.start();
+  cycleAmbient(actx.currentTime + 0.5);
+}
+function cycleAmbient(at){
+  if(!ambientGain || !actx) return;
+  // randomised breathing window: rise → hold → fall → silence, so the room never pulses on a predictable beat
+  const rise = 6 + Math.random()*3, hold = 9 + Math.random()*6, fall = 7 + Math.random()*3, quiet = 8 + Math.random()*8;
+  const peak = 0.018 + Math.random()*0.008;
+  const g = ambientGain.gain;
+  g.cancelScheduledValues(at);
+  g.setValueAtTime(0.0001, at);
+  g.exponentialRampToValueAtTime(peak, at + rise);
+  g.setValueAtTime(peak, at + rise + hold);
+  g.exponentialRampToValueAtTime(0.0001, at + rise + hold + fall);
+  setTimeout(()=>cycleAmbient(actx.currentTime + 0.05), (rise + hold + fall + quiet) * 1000);
+}
 
 // ── milestone goal progress (current net-worth tier) ──
 function renderGoal(){
