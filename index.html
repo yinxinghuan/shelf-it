@@ -1510,7 +1510,10 @@ const PROD_FAMS  = ['shelf','fridge','coffee','rack'];   // product/sale fixture
 // how many units of each family a full flagship shows
 // the store OPENS partially fitted so fixture upgrades have room to grow toward EQUIP[f].length per family.
 // only grows from here — never shrinks. coffee/rack/extra-checkout all start absent (each is an upgrade target).
-const EQUIP_START = { shelf:4, fridge:5, coffee:0, rack:0, checkout:0 };
+// lean opening — leaves real room for upgrades (every fixture-unlock card matters).
+// fridge order is interleaved (cooler/cooler/freezer/produce-bin/cooler/...), so fridge:3
+// = 2 coolers + 1 freezer; fresh (produce-bin) is the 4th fridge → an early upgrade win.
+const EQUIP_START = { shelf:3, fridge:3, coffee:0, rack:0, checkout:0 };
 // `owned` is the single source of truth for the floor: starts partially fitted and ONLY
 // grows. Every milestone adds a fixture / margin / branch — there is no sparse-reset setback.
 let owned = Object.assign({}, EQUIP_START);
@@ -1875,7 +1878,7 @@ function updateClerks(dt){
     }
   }
 }
-spawnClerk(); spawnClerk();                                // open with two clerks on the floor
+spawnClerk();                                              // open with one clerk on the floor; hiring is an early upgrade
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  GAME STATE
@@ -2149,7 +2152,7 @@ const WORKER_ICON = 'data:image/svg+xml,' + encodeURIComponent(
 { const w = staffNEl.querySelector('.wico').style;            // clerk glyph on the count chip
   w.backgroundImage = `url("${WORKER_ICON}")`; w.backgroundSize='contain'; w.backgroundRepeat='no-repeat'; w.backgroundPosition='center'; }
 
-function hireCost(){ return 30 + Math.max(0, clerks.length-2)*20; }   // first hires cheap, scaling up
+function hireCost(){ return 30 + Math.max(0, clerks.length-1)*20; }   // first hire cheap, scaling up (opening floor = 1 clerk)
 function refreshHire(){
   const cost = hireCost();
   hireEl.querySelector('.cost').textContent = '¥'+cost;
@@ -2192,9 +2195,25 @@ function openOpening(){
   headliner = null;
   headlinerEl.classList.remove('show');
   staffEl.classList.remove('show'); staffpanelEl.classList.remove('show');
-  // three distinct random categories to choose between
-  const pool = CATS.slice(); for(let i=pool.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [pool[i],pool[j]]=[pool[j],pool[i]]; }
-  const picks = pool.slice(0,3);
+  // narrow to categories the store can actually sell today: pick from cats currently
+  // assigned to a slot (so a shelf is stocked with the item, customers can find it,
+  // and the headliner has somewhere to "land"). Without this filter, fantasy goods
+  // (pre-unlock) or any cat whose fixture family isn't owned could be offered, the
+  // player would pick it, and no shelf would carry the headliner.
+  const sellable = new Set();
+  for(const s of slots){ if(s.assignedCat) sellable.add(s.assignedCat); }
+  let pool = CATS.filter(c => sellable.has(c.id));
+  if(pool.length < 3){
+    // belt-and-braces fallback (e.g. opening before buildStore stocked slots):
+    // anything the floor's fixtures could carry under current unlocks.
+    const famSet = new Set();
+    for(const s of slots){ for(const id of famCats(s.fam)) famSet.add(id); }
+    const fallback = CATS.filter(c => famSet.has(c.id));
+    if(fallback.length > pool.length) pool = fallback;
+  }
+  pool = pool.slice();
+  for(let i=pool.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [pool[i],pool[j]]=[pool[j],pool[i]]; }
+  const picks = pool.slice(0, Math.min(3, pool.length));
   openPicksEl.innerHTML = '';
   for(const cat of picks){
     const b = document.createElement('button');
@@ -2425,8 +2444,8 @@ function resetRun(){                                    // bankrupt → wipe eve
   cash=START_CASH; displayedCash=START_CASH; cashNumEl.textContent=String(START_CASH);
   day=0; goalIdx=0; level=1; marginLvl=0; branches=0;
   owned = Object.assign({}, EQUIP_START); unlockLog = []; branchPending=false; fantasyUnlocked=false;   // back to the opening loadout
-  // hire fees & extra clerks reset: shed clerks back down to the opening two
-  while(clerks.length>2){ const k=clerks.pop(); scene.remove(k.g); } clerkSpot=clerks.length;
+  // hire fees & extra clerks reset: shed clerks back down to the opening one
+  while(clerks.length>1){ const k=clerks.pop(); scene.remove(k.g); } clerkSpot=clerks.length;
   rebuildStore();                                        // fresh flagship, re-stocked from scratch
   localSave();                                           // platform: persist the wiped run so a reload starts fresh too
   startNextDay();
