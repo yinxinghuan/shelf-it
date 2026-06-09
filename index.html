@@ -205,6 +205,9 @@
   #finpanel .frow{display:flex;justify-content:space-between;font-size:14px;margin:6px 0;color:#5a4f44;font-weight:700;}
   #finpanel .frow b{color:var(--ink);font-weight:800;}
   #finpanel .frow b.rent{color:var(--red);}
+  #finpanel .frow.fattach{font-size:12px;margin:3px 0;color:#8a7d6c;padding-left:14px;}
+  #finpanel .frow.fattach span::before{content:"+ ";color:var(--tealD);}
+  #finpanel .frow.fattach b{color:var(--tealD);}
   #finpanel .fgoal{margin:14px 0 2px;}
   #finpanel .fgtop{display:flex;justify-content:space-between;font-size:11px;font-weight:800;letter-spacing:.04em;color:#7a6f62;margin-bottom:5px;}
   #finpanel .fgtop #finGoalTxt{color:#c4880f;}
@@ -313,7 +316,9 @@
   <div class="fhd" data-i18n="fin_title">THE BOOKS</div>
   <div class="ftot"><span class="y">¥</span><span id="finCash">60</span></div>
   <div class="fsub" data-i18n="fin_net">net worth</div>
-  <div class="frow"><span data-i18n="fin_rev">Takings today</span><b id="finRev">¥0</b></div>
+  <div class="frow"><span data-i18n="fin_rev">Item sales</span><b id="finRev">¥0</b></div>
+  <div class="frow fattach" id="finCoffeeRow"><span data-i18n="fin_coffee">Coffee bar</span><b id="finCoffee">¥0</b></div>
+  <div class="frow fattach" id="finRackRow"><span data-i18n="fin_rack">Snack rack</span><b id="finRack">¥0</b></div>
   <div class="frow"><span data-i18n="fin_cost">Cost of goods</span><b id="finCost">-¥0</b></div>
   <div class="frow"><span data-i18n="fin_rent">Rent due</span><b id="finRent" class="rent">-¥0</b></div>
   <div class="frow"><span data-i18n="fin_wage">Wages due</span><b id="finWage" class="rent">-¥0</b></div>
@@ -420,7 +425,7 @@ const I18N = {
     over_reached:'Reached DAY {d} · best ¥{n}', over_best:'best ¥{n}',
     stamp_branch:'NEW BRANCH', stamp_upgrade:'STORE UPGRADE', branch_head:'GOAL CLEARED!', branch_btn:'Open your branch', upgrade_btn:'Upgrade store',
     unlock_title:'FIT OUT YOUR BRANCH', unlock_title_up:'UPGRADE YOUR STORE', unlock_pick:'Pick one to add',
-    fin_title:'THE BOOKS', fin_net:'net worth', fin_rev:'Takings today', fin_cost:'Cost of goods', fin_rent:'Rent due', fin_wage:'Wages due',
+    fin_title:'THE BOOKS', fin_net:'net worth', fin_rev:'Item sales', fin_coffee:'Coffee bar', fin_rack:'Snack rack', fin_cost:'Cost of goods', fin_rent:'Rent due', fin_wage:'Wages due',
     eq_shelf:'Shelf', eq_fridge:'Fridge', eq_coffee:'Coffee Bar', eq_rack:'Snack Rack', eq_have:'have {n}', eq_added:'+1 {name}',
   },
   zh: {
@@ -437,7 +442,7 @@ const I18N = {
     over_reached:'撑到 DAY {d} · 历史最高 ¥{n}', over_best:'历史最高 ¥{n}',
     stamp_branch:'开新分店', stamp_upgrade:'店铺升级', branch_head:'目标达成!', branch_btn:'开分店', upgrade_btn:'升级店铺',
     unlock_title:'布置你的分店', unlock_title_up:'升级你的店铺', unlock_pick:'挑一件添置',
-    fin_title:'账本', fin_net:'净资产', fin_rev:'今日营业额', fin_cost:'售出成本', fin_rent:'待付租金', fin_wage:'待付工资',
+    fin_title:'账本', fin_net:'净资产', fin_rev:'货架销售', fin_coffee:'咖啡机', fin_rack:'零食架', fin_cost:'售出成本', fin_rent:'待付租金', fin_wage:'待付工资',
     eq_shelf:'货架', eq_fridge:'冷柜', eq_coffee:'咖啡吧', eq_rack:'零食架', eq_have:'已有 {n}', eq_added:'+1 {name}',
   },
 };
@@ -1104,14 +1109,16 @@ function animateCashier(dt){
 // ── impulse rack at the register: a small candy/gum stand beside the checkout (decorative + the impulse-buy bump) ──
 function impulseRack(){
   const g = new THREE.Group();
-  g.add(box(0.52,0.06,0.36, darken(P.woodD,0.85), 0,0.04,0));            // base
-  g.add(box(0.48,0.66,0.30, P.woodM, 0,0.37,0));                         // body
-  g.add(box(0.54,0.05,0.36, P.accent, 0,0.71,0));                        // teal top rail (family accent)
+  const W=0.56, D=0.34, H=1.02;                                          // taller floor stand so it reads next to the coffee unit
+  g.add(box(W+0.04,0.06,D+0.04, darken(P.woodD,0.85), 0,0.04,0));        // base
+  g.add(box(W,H,D, P.woodM, 0,0.04+H/2,0));                              // body
+  g.add(box(W+0.06,0.06,D+0.04, P.accent, 0,0.04+H+0.02,0));             // teal top rail (family accent)
   const cols=[P.red,P.orange,P.gold,P.petal,P.blue,P.green];
-  for(let t=0;t<2;t++){
-    const y=0.30+t*0.22;
-    g.add(box(0.50,0.02,0.30, darken(P.woodD,0.9), 0, y-0.085, 0));      // shelf board
-    for(let i=0;i<4;i++) g.add(box(0.085,0.13,0.07, cols[(t*4+i)%cols.length], -0.165+i*0.11, y, 0.13));  // little boxes face +z
+  const tiers=3, n=4;                                                    // three stocked tiers of product
+  for(let t=0;t<tiers;t++){
+    const y=0.26+t*0.30;
+    g.add(box(W-0.04,0.025,D, darken(P.woodD,0.9), 0, y-0.105, 0));      // shelf board
+    for(let i=0;i<n;i++) g.add(box(0.105,0.17,0.085, cols[(t*n+i)%cols.length], -0.18+i*0.12, y, D/2-0.03));  // product boxes face +z
   }
   g.traverse(o=>{ if(o.isMesh){o.castShadow=true;o.receiveShadow=true;} });
   return g;
@@ -1649,6 +1656,8 @@ const cashNumEl=document.getElementById('cashNum'), dayEl=document.getElementByI
       goalFillEl=document.getElementById('goalFill'),
       cashChipEl=document.getElementById('cash'), finpanelEl=document.getElementById('finpanel'),
       finCashEl=document.getElementById('finCash'), finRevEl=document.getElementById('finRev'),
+      finCoffeeEl=document.getElementById('finCoffee'), finRackEl=document.getElementById('finRack'),
+      finCoffeeRowEl=document.getElementById('finCoffeeRow'), finRackRowEl=document.getElementById('finRackRow'),
       finCostEl=document.getElementById('finCost'), finRentEl=document.getElementById('finRent'),
       finWageEl=document.getElementById('finWage'), finCloseEl=document.getElementById('finClose'),
       finGoalTxtEl=document.getElementById('finGoalTxt'), finGoalNowEl=document.getElementById('finGoalNow'),
@@ -1689,6 +1698,7 @@ let cash=START_CASH, displayedCash=START_CASH, day=1, goalIdx=0, level=1, timeLe
     spawnTimer=0, spawnGap=2.8, elapsed=0, combo=0,
     custDone=0, custLost=0, tidyHits=0,
     dayRevenue=0, dayRestock=0, dayHire=0,        // per-day tallies: takings / cost-of-goods-sold / mid-day hire fees
+    dayCoffee=0, dayRack=0,                        // per-day till attach revenue, broken out for the books panel
     curPeriod=null;                              // active time-of-day period (drives crowd + HUD label)
 const HISCORE_KEY='shelfit_hi'; let hiScore=+(localStorage.getItem(HISCORE_KEY)||0);
 
@@ -2015,7 +2025,11 @@ function renderGoal(){
 let finOpen = false;
 function renderFin(){
   finCashEl.textContent = String(Math.round(cash));
-  finRevEl.textContent  = '¥'+dayRevenue;
+  finRevEl.textContent  = '¥'+(dayRevenue - dayCoffee - dayRack);   // shelves + fridges only; attach revenue is broken out below
+  finCoffeeEl.textContent = '¥'+dayCoffee;
+  finRackEl.textContent   = '¥'+dayRack;
+  finCoffeeRowEl.style.display = (owned.coffee||0)>0 ? '' : 'none';  // only surface a fixture you actually own
+  finRackRowEl.style.display   = (owned.rack||0)>0   ? '' : 'none';
   finCostEl.textContent = '-¥'+dayRestock;
   finRentEl.textContent = '-¥'+rentFor();                // both settle out of the till at day close
   finWageEl.textContent = '-¥'+(clerks.length*CLERK_WAGE);
@@ -2131,7 +2145,7 @@ function startNextDay(){
   overEl.classList.remove('show');
   day += 1;
   // bankroll carries over — only the per-day tallies reset
-  dayRevenue = 0; dayRestock = 0; dayHire = 0;
+  dayRevenue = 0; dayRestock = 0; dayHire = 0; dayCoffee = 0; dayRack = 0;
   custDone = 0; custLost = 0; tidyHits = 0; combo = 0; setCombo(0);
   timeLeft = DAY_LENGTH; setClock(timeLeft);
   // wipe customers but KEEP shelves (they were stocked through end of yesterday — feels like a real shop reopening)
@@ -2288,10 +2302,10 @@ function tick(){
           let gain = margin;
           // coffee bar — a high-margin cup grabbed at the till (scales with how many bars you've stacked)
           const coff = coffeeSale();
-          if(coff>0){ addCash(coff); dayRevenue += coff; gain += coff; }
+          if(coff>0){ addCash(coff); dayRevenue += coff; dayCoffee += coff; gain += coff; }
           // checkout snack rack — a cheap impulse add-on (scales with how many racks you own)
           const rk = rackSale();
-          if(rk>0){ addCash(rk); dayRevenue += rk; gain += rk; }
+          if(rk>0){ addCash(rk); dayRevenue += rk; dayRack += rk; gain += rk; }
           if(c.tidy){ tidyHits+=1; setCombo(combo+1); const bonus=2+Math.floor(combo/3)*2; addCash(bonus); dayRevenue+=bonus; gain+=bonus;
             popText(c.g.position.clone().setY(2.4),'+¥'+gain,'tidy'); sfxCash(combo); }
           else { popText(c.g.position.clone().setY(2.4),'+¥'+gain,'cash'); sfxCash(0); }
