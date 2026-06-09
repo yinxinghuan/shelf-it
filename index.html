@@ -32,8 +32,9 @@
   #cash{position:fixed;top:12px;left:12px;z-index:10;display:flex;align-items:center;gap:8px;
     padding:5px 18px 5px 6px;border-radius:999px;font-variant-numeric:tabular-nums;
     background:var(--paper);border:3px solid var(--ink);
-    box-shadow:3px 3px 0 var(--ink);
+    box-shadow:3px 3px 0 var(--ink);cursor:pointer;-webkit-touch-callout:none;user-select:none;
     font-family:var(--comic);font-size:30px;font-weight:400;color:var(--ink);line-height:1;letter-spacing:.02em;}
+  #cash:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);}
   #cash .coin{display:flex;align-items:center;justify-content:center;width:32px;height:32px;flex:0 0 auto;
     border-radius:50%;background:var(--yellow);color:var(--ink);border:2.5px solid var(--ink);
     font-family:var(--comic);font-size:19px;font-weight:400;}
@@ -189,6 +190,28 @@
   #catpanel .chip:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);}
   #catpanel .chip.sel{background:var(--teal);}
   #catpanel .chip.sel .lbl{color:var(--ink);}
+  /* ── live finances panel (tap the cash chip anytime to check the books + goal) ── */
+  #finpanel{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(21,17,14,.42);z-index:25;padding:20px;}
+  #finpanel.show{display:flex;}
+  #finpanel .fcard{pointer-events:auto;background:var(--paper);background-image:var(--halftone);background-size:7px 7px;
+    border:4px solid var(--ink);border-radius:18px;padding:22px 24px 18px;min-width:260px;max-width:330px;
+    box-shadow:7px 7px 0 var(--ink);position:relative;}
+  #finpanel .fhd{font-size:12px;letter-spacing:.22em;color:#7a6f62;text-align:center;font-weight:800;}
+  #finpanel .ftot{font-family:var(--comic);font-size:56px;font-weight:400;color:var(--ink);text-align:center;
+    letter-spacing:.02em;font-variant-numeric:tabular-nums;text-shadow:3px 3px 0 var(--yellow);margin:2px 0 0;line-height:1;}
+  #finpanel .ftot .y{font-size:30px;vertical-align:7px;margin-right:2px;}
+  #finpanel .fsub{font-size:10px;letter-spacing:.16em;color:#9a8d7c;text-align:center;font-weight:800;margin:2px 0 14px;text-transform:uppercase;}
+  #finpanel .frow{display:flex;justify-content:space-between;font-size:14px;margin:6px 0;color:#5a4f44;font-weight:700;}
+  #finpanel .frow b{color:var(--ink);font-weight:800;}
+  #finpanel .frow b.rent{color:var(--red);}
+  #finpanel .fgoal{margin:14px 0 2px;}
+  #finpanel .fgtop{display:flex;justify-content:space-between;font-size:11px;font-weight:800;letter-spacing:.04em;color:#7a6f62;margin-bottom:5px;}
+  #finpanel .fgtop #finGoalTxt{color:#c4880f;}
+  #finpanel .fgbar{height:11px;border-radius:999px;background:#ece0c8;overflow:hidden;border:2.5px solid var(--ink);}
+  #finpanel .fgfill{height:100%;width:0%;background:var(--yellow);transition:width .5s cubic-bezier(.3,1,.4,1);}
+  #finpanel #finClose{pointer-events:auto;display:block;margin:16px auto 0;background:none;border:none;cursor:pointer;
+    font-family:var(--comic);font-size:17px;font-weight:400;letter-spacing:.06em;color:#9a8d7c;}
   /* ── opening: pick today's headliner (one tap, then the shift runs) ── */
   #opening,#unlock{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
     gap:24px;background:rgba(21,17,14,.42);z-index:24;}
@@ -286,6 +309,20 @@
 <div id="fx"></div>
 <div id="catpanel"><div class="card"><div class="ttl" data-i18n="catpanel_title">WHAT DOES THIS SHELF SELL?</div><div class="grid"></div></div></div>
 <div id="cash"><span class="coin">¥</span><span id="cashNum">60</span></div>
+<div id="finpanel"><div class="fcard">
+  <div class="fhd" data-i18n="fin_title">THE BOOKS</div>
+  <div class="ftot"><span class="y">¥</span><span id="finCash">60</span></div>
+  <div class="fsub" data-i18n="fin_net">net worth</div>
+  <div class="frow"><span data-i18n="fin_rev">Takings today</span><b id="finRev">¥0</b></div>
+  <div class="frow"><span data-i18n="fin_cost">Cost of goods</span><b id="finCost">-¥0</b></div>
+  <div class="frow"><span data-i18n="fin_rent">Rent due</span><b id="finRent" class="rent">-¥0</b></div>
+  <div class="frow"><span data-i18n="fin_wage">Wages due</span><b id="finWage" class="rent">-¥0</b></div>
+  <div class="fgoal">
+    <div class="fgtop"><span id="finGoalTxt">Goal ¥80</span><span id="finGoalNow">Net worth ¥0</span></div>
+    <div class="fgbar"><div class="fgfill" id="finGoalFill"></div></div>
+  </div>
+  <button id="finClose" data-i18n="btn_close">Close</button>
+</div></div>
 <div class="hud" id="hdr">
   <div id="day">DAY 1</div>
 </div>
@@ -383,6 +420,7 @@ const I18N = {
     over_reached:'Reached DAY {d} · best ¥{n}', over_best:'best ¥{n}',
     stamp_branch:'NEW BRANCH', stamp_upgrade:'STORE UPGRADE', branch_head:'GOAL CLEARED!', branch_btn:'Open your branch', upgrade_btn:'Upgrade store',
     unlock_title:'FIT OUT YOUR BRANCH', unlock_title_up:'UPGRADE YOUR STORE', unlock_pick:'Pick one to add',
+    fin_title:'THE BOOKS', fin_net:'net worth', fin_rev:'Takings today', fin_cost:'Cost of goods', fin_rent:'Rent due', fin_wage:'Wages due',
     eq_shelf:'Shelf', eq_fridge:'Fridge', eq_coffee:'Coffee Bar', eq_rack:'Snack Rack', eq_have:'have {n}', eq_added:'+1 {name}',
   },
   zh: {
@@ -399,6 +437,7 @@ const I18N = {
     over_reached:'撑到 DAY {d} · 历史最高 ¥{n}', over_best:'历史最高 ¥{n}',
     stamp_branch:'开新分店', stamp_upgrade:'店铺升级', branch_head:'目标达成!', branch_btn:'开分店', upgrade_btn:'升级店铺',
     unlock_title:'布置你的分店', unlock_title_up:'升级你的店铺', unlock_pick:'挑一件添置',
+    fin_title:'账本', fin_net:'净资产', fin_rev:'今日营业额', fin_cost:'售出成本', fin_rent:'待付租金', fin_wage:'待付工资',
     eq_shelf:'货架', eq_fridge:'冷柜', eq_coffee:'咖啡吧', eq_rack:'零食架', eq_have:'已有 {n}', eq_added:'+1 {name}',
   },
 };
@@ -1607,7 +1646,13 @@ const cashNumEl=document.getElementById('cashNum'), dayEl=document.getElementByI
       unlockEl=document.getElementById('unlock'), unlockPicksEl=unlockEl.querySelector('.opicks'), unlockSubEl=document.getElementById('unlockSub'), unlockTitleEl=document.getElementById('unlockTitle'),
       headlinerEl=document.getElementById('headliner'), hireEl=document.getElementById('hire'),
       goalTxtEl=document.getElementById('goalTxt'), goalNowEl=document.getElementById('goalNow'),
-      goalFillEl=document.getElementById('goalFill');
+      goalFillEl=document.getElementById('goalFill'),
+      cashChipEl=document.getElementById('cash'), finpanelEl=document.getElementById('finpanel'),
+      finCashEl=document.getElementById('finCash'), finRevEl=document.getElementById('finRev'),
+      finCostEl=document.getElementById('finCost'), finRentEl=document.getElementById('finRent'),
+      finWageEl=document.getElementById('finWage'), finCloseEl=document.getElementById('finClose'),
+      finGoalTxtEl=document.getElementById('finGoalTxt'), finGoalNowEl=document.getElementById('finGoalNow'),
+      finGoalFillEl=document.getElementById('finGoalFill');
 let headliner=null;                            // today's主打 category id → more demand + a price premium
 const DAY_LENGTH = 60;                         // one shift = 60 seconds; structured around the day rhythm
 const START_CASH = 60;                         // opening bankroll so early restocks don't bottom out the till
@@ -1966,6 +2011,31 @@ function renderGoal(){
   goalFillEl.style.width = Math.max(0, Math.min(1, cash/g))*100 + '%';
 }
 
+// ── live finances panel (tap the cash chip anytime: today's books + standing costs + goal) ──
+let finOpen = false;
+function renderFin(){
+  finCashEl.textContent = String(Math.round(cash));
+  finRevEl.textContent  = '¥'+dayRevenue;
+  finCostEl.textContent = '-¥'+dayRestock;
+  finRentEl.textContent = '-¥'+rentFor();                // both settle out of the till at day close
+  finWageEl.textContent = '-¥'+(clerks.length*CLERK_WAGE);
+  if(goalIdx >= GOALS.length){
+    finGoalTxtEl.textContent=t('goals_all'); finGoalNowEl.textContent=t('net')+' ¥'+Math.max(0,cash);
+    finGoalFillEl.style.width='100%';
+  } else {
+    const g = GOALS[goalIdx];
+    finGoalTxtEl.textContent=t('goal_lbl')+' ¥'+g; finGoalNowEl.textContent=t('net')+' ¥'+Math.max(0,cash);
+    finGoalFillEl.style.width = Math.max(0, Math.min(1, cash/g))*100 + '%';
+  }
+}
+function openFin(){ if(bankrupt) return; finOpen=true; renderFin(); finpanelEl.classList.add('show'); }
+function closeFin(){ finOpen=false; finpanelEl.classList.remove('show'); }
+// open on click (not pointerdown): the backdrop also closes on click, and opening on pointerdown
+// would let this same gesture's click bleed through to the backdrop and shut it immediately.
+cashChipEl.addEventListener('click', e => { e.stopPropagation(); finOpen ? closeFin() : openFin(); });
+finCloseEl.addEventListener('click', closeFin);
+finpanelEl.addEventListener('click', e => { if(e.target===finpanelEl) closeFin(); });   // tap the dimmed backdrop to dismiss
+
 function endOfDay(){
   running=false;
   // settle the day: wages + rent come out of the till now (hire fees already left when hired)
@@ -2104,7 +2174,8 @@ function ensureTidyBar(gd){
 }
 
 function tick(){
-  const dt=Math.min(clock.getDelta(),0.05);
+  let dt=Math.min(clock.getDelta(),0.05);
+  if(finOpen) dt=0;                                    // books open → freeze the shift so checking the numbers is never a time trap
   controls.update(); updateTweens(dt); updateDust(dt); updateWalls(dt); animateCashier(dt);
 
   // smooth cash counter (lerp displayed → real, like a register tally)
