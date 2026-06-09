@@ -2,7 +2,7 @@
 // Retail-themed sample set; theme is incidental — these validate the prop pipeline.
 // All geometry from the shared prims; one family accent (P.accent teal) throughout.
 import * as THREE from 'three';
-import { P, M, box, cyl, ball, wedge } from '../lib/prims.js';
+import { P, M, box, cyl, ball, wedge, darken } from '../lib/prims.js';
 
 // a small product (box or can) for stocking shelves / coolers
 function product(x,y,z, c, kind){
@@ -109,4 +109,44 @@ export function aisleSign(){
   return g;
 }
 
-export const PROPS = { shelf, freezer, checkout, produce, basket, aisleSign };
+// ─── snack rack: tall impulse floor stand + teal top rail + 3 stocked tiers ────
+export function snackRack(){
+  const g=new THREE.Group(); const W=0.56, D=0.34, H=1.02;
+  g.add(box(W+0.04,0.06,D+0.04, darken(P.woodD,0.85), 0,0.04,0));        // base
+  g.add(box(W,H,D, P.woodM, 0,0.04+H/2,0));                             // body
+  g.add(box(W+0.06,0.06,D+0.04, P.accent, 0,0.04+H+0.02,0));            // teal top rail (accent)
+  const cols=[P.red,P.orange,P.gold,P.petal,P.blue,P.green];
+  const tiers=3, n=4;
+  for(let t=0;t<tiers;t++){
+    const y=0.26+t*0.30;
+    g.add(box(W-0.04,0.025,D, darken(P.woodD,0.9), 0, y-0.105, 0));      // shelf board
+    for(let i=0;i<n;i++) g.add(box(0.105,0.17,0.085, cols[(t*n+i)%cols.length], -0.18+i*0.12, y, D/2-0.03)); // product boxes face +z
+  }
+  return g;
+}
+
+// ─── coffee vending machine: tall floor unit, teal header cap + opaque window ──
+export function coffeeMachine(){
+  const g=new THREE.Group(); const bw=0.72, bd=0.54, bh=1.46, fz=bd/2;
+  g.add(box(bw+0.06,0.10,bd+0.06, darken(P.ironD,0.8), 0,0.05,0));          // base plinth
+  g.add(box(bw,bh,bd, P.panelD, 0,0.05+bh/2,0));                           // dark body
+  g.add(box(bw+0.05,0.28,bd+0.04, darken(P.accent,0.7), 0, 0.05+bh-0.10, 0)); // teal header CAP (proud top so it doesn't z-fight the body top)
+  g.add(box(bw,0.14,0.03, P.accent, 0, 0.05+bh-0.12, fz+0.02));           // bright teal face strip
+  const winY=0.05+bh*0.66, winW=0.52, winH=0.50;
+  g.add(box(winW,winH,0.02, darken(P.slate,0.8), 0, winY, fz+0.02));      // dark display backing (opaque)
+  for(let r=0;r<2;r++){
+    g.add(box(winW-0.04,0.025,0.04, darken(P.woodD,0.9), 0, winY-0.19+r*0.21, fz+0.06)); // shelf ledge
+    for(let i=-1;i<=1;i++) g.add(cyl(0.05,0.045,0.10,8, P.cream, i*0.16, winY-0.12+r*0.21, fz+0.09)); // cups
+  }
+  const fzF=fz+0.06, hw=winW/2+0.03, hh=winH/2+0.03, tb=0.05;             // steel window frame (4 bars)
+  g.add(box(winW+0.10,tb,0.03, P.steel, 0, winY+hh, fzF)); g.add(box(winW+0.10,tb,0.03, P.steel, 0, winY-hh, fzF));
+  g.add(box(tb,winH+0.06,0.03, P.steel, -hw, winY, fzF)); g.add(box(tb,winH+0.06,0.03, P.steel, hw, winY, fzF));
+  const px=0.17, py=0.05+bh*0.40;
+  g.add(box(0.22,0.32,0.03, P.ironM, px, py, fz+0.02));                   // selection button panel
+  for(let b=0;b<3;b++) g.add(box(0.07,0.07,0.03, P.accent, px, py+0.10-b*0.10, fz+0.06)); // buttons proud
+  g.add(box(0.42,0.20,0.03, darken(P.ironD,0.6), -0.06, 0.05+bh*0.16, fz+0.02)); // dispense panel
+  g.add(box(0.42,0.04,0.05, P.steel, -0.06, 0.05+bh*0.16+0.11, fz+0.04)); // slot lip
+  return g;
+}
+
+export const PROPS = { shelf, freezer, checkout, produce, basket, aisleSign, snackRack, coffeeMachine };

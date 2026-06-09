@@ -240,6 +240,26 @@
     filter:drop-shadow(2px 2px 0 rgba(21,17,14,.25));}
   #opening .opick .lbl,#unlock .opick .lbl{font-size:14px;font-weight:800;color:var(--ink);letter-spacing:.04em;}
   #unlock .opick .cnt{font-size:10px;font-weight:800;color:var(--ink);opacity:.6;letter-spacing:.04em;margin-top:-4px;}
+  /* optional "new branch" pick — teal-flagged so it reads as a special, skippable choice */
+  #unlock .opick.branch{border-color:var(--teal);background:linear-gradient(180deg,#e7fbf8,var(--paper));box-shadow:5px 5px 0 var(--tealD);}
+  #unlock .opick.branch .cnt{color:var(--tealD);opacity:1;}
+  /* one-time "after dark" fantasy unlock — blood-red flagged so it reads as a special, ominous choice */
+  #unlock .opick.fantasy{border-color:#9e1414;background:linear-gradient(180deg,#fbe7e7,var(--paper));box-shadow:5px 5px 0 #6e0d0d;}
+  #unlock .opick.fantasy .cnt{color:#9e1414;opacity:1;}
+  /* ── upgrade-unlock notification banner ── */
+  #unlockToast{position:fixed;left:50%;top:23%;transform:translate(-50%,-50%) scale(.6);display:none;
+    flex-direction:column;align-items:center;gap:3px;z-index:60;pointer-events:none;
+    background:var(--paper);border:5px solid var(--ink);border-radius:22px;padding:13px 28px 16px;
+    box-shadow:7px 7px 0 var(--ink);text-align:center;}
+  #unlockToast.show{display:flex;animation:utPop .46s cubic-bezier(.3,1.7,.5,1) forwards;}
+  #unlockToast.hide{display:flex;animation:utOut .4s ease forwards;}
+  @keyframes utPop{from{transform:translate(-50%,-50%) scale(.5);opacity:0;}to{transform:translate(-50%,-50%) scale(1);opacity:1;}}
+  @keyframes utOut{to{transform:translate(-50%,-62%) scale(.92);opacity:0;}}
+  #unlockToast .utkick{font-family:var(--pow);font-size:15px;color:var(--teal);letter-spacing:.07em;-webkit-text-stroke:.4px var(--ink);}
+  #unlockToast .utico{width:54px;height:54px;background-size:contain;background-repeat:no-repeat;background-position:center;
+    filter:drop-shadow(2px 2px 0 rgba(21,17,14,.25));margin:2px 0;}
+  #unlockToast .utname{font-family:var(--comic);font-size:27px;color:var(--ink);letter-spacing:.03em;line-height:1;}
+  #unlockToast .utsub{font-size:12px;font-weight:800;color:var(--tealD);letter-spacing:.03em;}
   /* ── SHELF · IT wordmark (matches the feed poster: all-yellow fill + hard red drop-shadow, no ink stroke) ── */
   .brandmark{font-family:var(--comic);font-weight:400;line-height:1;letter-spacing:.02em;
     display:inline-flex;align-items:center;gap:.02em;-webkit-touch-callout:none;user-select:none;
@@ -379,6 +399,12 @@
   <div class="otitle"><span id="unlockTitle" data-i18n="unlock_title">FIT OUT YOUR BRANCH</span><small id="unlockSub">pick one to install</small></div>
   <div class="opicks"></div>
 </div>
+<div id="unlockToast" aria-hidden="true">
+  <span class="utkick" data-i18n="unlock_toast">UNLOCKED!</span>
+  <span class="utico"></span>
+  <span class="utname"></span>
+  <span class="utsub"></span>
+</div>
 <div id="headliner">
   <svg class="star" viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.7 1.4 6.8L12 17.8 5.9 20.5l1.4-6.8L2.2 9l6.9-.7z" fill="#f3b53d" stroke="#c4880f" stroke-width="1.2" stroke-linejoin="round"/></svg>
   <div class="hsil"></div>
@@ -427,6 +453,9 @@ const I18N = {
     unlock_title:'FIT OUT YOUR BRANCH', unlock_title_up:'UPGRADE YOUR STORE', unlock_pick:'Pick one to add',
     fin_title:'THE BOOKS', fin_net:'net worth', fin_rev:'Item sales', fin_coffee:'Coffee bar', fin_rack:'Snack rack', fin_cost:'Cost of goods', fin_rent:'Rent due', fin_wage:'Wages due',
     eq_shelf:'Shelf', eq_fridge:'Fridge', eq_coffee:'Coffee Bar', eq_rack:'Snack Rack', eq_have:'have {n}', eq_added:'+1 {name}',
+    eq_margin:'Profit Margin', eq_branch:'New Branch', eq_margin_sub:'+{n}% on every sale', eq_branch_sub:'+{n}% all takings',
+    eq_checkout:'Extra Checkout', eq_checkout_sub:'Open a 2nd lane', eq_fantasy:'After Dark', eq_fantasy_sub:'Stock the strange stuff', eq_fantasy_open:'The night crowd arrives',
+    unlock_toast:'UNLOCKED!', eq_installed:'Installed', eq_branch_open:'Branch opened',
   },
   zh: {
     catpanel_title:'这个货架卖什么', clock_cap:'营业', day_phase_open:'营业中', day_phase_pre:'准备开门',
@@ -444,6 +473,9 @@ const I18N = {
     unlock_title:'布置你的分店', unlock_title_up:'升级你的店铺', unlock_pick:'挑一件添置',
     fin_title:'账本', fin_net:'净资产', fin_rev:'货架销售', fin_coffee:'咖啡机', fin_rack:'零食架', fin_cost:'售出成本', fin_rent:'待付租金', fin_wage:'待付工资',
     eq_shelf:'货架', eq_fridge:'冷柜', eq_coffee:'咖啡吧', eq_rack:'零食架', eq_have:'已有 {n}', eq_added:'+1 {name}',
+    eq_margin:'利润率', eq_branch:'开新分店', eq_margin_sub:'每单 +{n}%', eq_branch_sub:'全店收益 +{n}%',
+    eq_checkout:'增设收银台', eq_checkout_sub:'开第二条结账通道', eq_fantasy:'夜幕降临', eq_fantasy_sub:'上架神秘商品', eq_fantasy_open:'夜间顾客上门了',
+    unlock_toast:'已解锁!', eq_installed:'已添置', eq_branch_open:'分店开张',
   },
 };
 const LOCALE = (() => {
@@ -573,6 +605,10 @@ const CATS = [
   { id:'cold',     name:'冷饮',   en:'Soda',      col:P.coldGlow, kind:8, cost:4, price:12 },
   { id:'icecream', name:'冰淇淋', en:'Ice Cream', col:P.petal,    kind:5, cost:5, price:18 },
   { id:'dairy',    name:'乳品',   en:'Dairy',     col:P.cream,    kind:6, cost:4, price:14 },
+  // 奇幻 — fantasy goods: very high margin, gated behind a late-game unlock, sellable on dry shelves AND coolers/freezers
+  { id:'blood',    name:'鲜血',   en:'Blood',     col:0x9e1414,   kind:0, cost:8,  price:46, fantasy:true },
+  { id:'rawmeat',  name:'生肉',   en:'Raw Meat',  col:0xb24a55,   kind:3, cost:9,  price:42, fantasy:true },
+  { id:'brains',   name:'脑花',   en:'Brains',    col:0xd98aa0,   kind:4, cost:10, price:50, fantasy:true },
 ];
 const CAT = Object.fromEntries(CATS.map(c=>[c.id,c]));
 const catName = c => (LOCALE==='zh' ? c.name : c.en);   // category label in the active locale
@@ -580,6 +616,12 @@ const catName = c => (LOCALE==='zh' ? c.name : c.en);   // category label in the
 const FAM_AMBIENT = ['biscuit','snack','can','noodle','sundry','coffee','liquor'];   // dry-goods gondolas: islands + wall runs
 const FAM_FRESH   = ['fruit','veg'];                      // open produce bins
 const FAM_FROZEN  = ['drink','cold','icecream','dairy'];  // glass-door coolers + chest freezer
+const FAM_FANTASY = ['blood','rawmeat','brains'];          // unlocked late; offered on ambient + frozen fixtures
+// categories a slot may sell right now: its base family, plus fantasy goods once unlocked (shelves & coolers only)
+function famCats(fam){
+  if(fantasyUnlocked && (fam===FAM_AMBIENT || fam===FAM_FROZEN)) return fam.concat(FAM_FANTASY);
+  return fam;
+}
 
 // ── customer archetypes (Theme-Hospital style) ──────────────────────────────
 // Each shopper TYPE is a recognizable character look bound to a SHORT preferred-
@@ -598,7 +640,12 @@ const ARCH = {
   fitWoman:    { char:'fitWoman',    wants:['drink','dairy','fruit','cold'] },
   chef:        { char:'chef',        wants:['veg','fruit','can','noodle','liquor'] },
   bigGuy:      { char:'bigGuy',      wants:['liquor','can','snack','drink','noodle'] },
+  // fantasy crowd — identity-bound cravings (mostly their signature good), only spawn once fantasy is unlocked
+  vampire:     { char:'vampire',     wants:['blood','blood','blood','liquor'] },
+  werewolf:    { char:'werewolf',    wants:['rawmeat','rawmeat','rawmeat','can'] },
+  zombie:      { char:'zombie',      wants:['brains','brains','brains','noodle'] },
 };
+const MONSTER_ARCHES = ['vampire','werewolf','zombie'];   // injected into every period's crowd after the fantasy unlock
 // ── time-of-day periods within one shift ────────────────────────────────────
 // `frac` = share of the day; `gap` = seconds between spawns (smaller = busier);
 // `mix` = weighted archetype blend, giving each period a distinct crowd.
@@ -1106,6 +1153,31 @@ function animateCashier(dt){
     rig.armL.rotation.x += (Math.sin(u.t*1.5)*0.06 + u.pulse*0.5 - rig.armL.rotation.x)*k;
   }
 }
+// ── extra checkout lanes (a late upgrade) — each adds a till + cashier + a queue point ──
+// `tills` always begins with the structural base lane; placeExtraCheckout() appends more on build.
+// Customers pay at whichever till is nearest, so a 2nd lane visibly halves the front-of-store pile-up.
+const tills = [{ pos:new THREE.Vector3(2.4, 0, -3.55), cashier }];   // base lane uses the structural cashier
+const extraCashiers = [];
+const EXTRA_CHECKOUTS = [
+  { x:-3.0, z:-HZ+1.35, ry:0, stand:new THREE.Vector3(-2.4, 0, -3.4), cashier:'worker' },   // mirror lane, west of the door
+];
+function placeExtraCheckout(cfg){
+  place(PROPS.checkout, cfg.x, cfg.z, cfg.ry, 1.25, [0.7,0.45]);
+  const ca = CHARACTERS[cfg.cashier](); ca.scale.setScalar(0.66);
+  ca.position.set(cfg.x, 0, cfg.z-0.6); ca.rotation.y = cfg.ry; store.add(ca);
+  ca.userData.t = Math.random()*6; ca.userData.pulse = 0;
+  extraCashiers.push(ca);
+  tills.push({ pos:cfg.stand, cashier:ca });
+}
+function animateExtraCashiers(dt){
+  for(const ca of extraCashiers){
+    const u=ca.userData; u.t+=dt; u.pulse=Math.max(0,u.pulse-dt*1.9);
+    ca.position.y = Math.abs(Math.sin(u.t*1.5))*0.02 + u.pulse*0.06;
+    const rig=ca.userData.rig; if(rig){ const k=Math.min(1,dt*15);
+      rig.armR.rotation.x += (-0.22 - u.pulse*1.0 - rig.armR.rotation.x)*k;
+      rig.armL.rotation.x += (u.pulse*0.5 - rig.armL.rotation.x)*k; }
+  }
+}
 // ── impulse rack at the register: a small candy/gum stand beside the checkout (decorative + the impulse-buy bump) ──
 function impulseRack(){
   const g = new THREE.Group();
@@ -1313,17 +1385,21 @@ const EQUIP = {
   rack: [
     () => place(impulseRack, 4.2, -HZ+1.0, 0, 1.0, [0.28,0.20]),
   ],
+  // checkout = EXTRA registers only (the base lane is structural). owned.checkout starts at 0; each upgrade opens one more lane.
+  checkout: EXTRA_CHECKOUTS.map(cfg => () => placeExtraCheckout(cfg)),
 };
-const EQUIP_FAMS = ['shelf','fridge','coffee','rack'];
-// how many units of each family a full L1 flagship shows (also each family's ceiling)
-const EQUIP_FULL = {}; EQUIP_FAMS.forEach(f => EQUIP_FULL[f] = EQUIP[f].length);
-// a fresh branch (L2+) opens nearly empty — two shelves to trade, nothing else. The
-// unlock card grows it one fixture at a time. `owned` accumulates across every branch.
-const L2_BASE = { shelf:2, fridge:0, coffee:0, rack:0 };
-let owned = Object.assign({}, EQUIP_FULL);   // L1 flagship = full; reset to L2_BASE on the first branch
+const EQUIP_FAMS = ['shelf','fridge','coffee','rack','checkout'];
+const PROD_FAMS  = ['shelf','fridge','coffee','rack'];   // product/sale fixtures — drive variety synergy (checkout is throughput, not variety)
+// how many units of each family a full flagship shows
+// the store OPENS partially fitted so fixture upgrades have room to grow toward EQUIP[f].length per family.
+// only grows from here — never shrinks. coffee/rack/extra-checkout all start absent (each is an upgrade target).
+const EQUIP_START = { shelf:4, fridge:5, coffee:0, rack:0, checkout:0 };
+// `owned` is the single source of truth for the floor: starts partially fitted and ONLY
+// grows. Every milestone adds a fixture / margin / branch — there is no sparse-reset setback.
+let owned = Object.assign({}, EQUIP_START);
 let unlockLog = [];                          // (#66) families in the order the player fitted them out → drives the wall posters
 let branchPending = false;                   // set when a goal clears → next day opens the unlock card
-let branchFirst = false;                     // true only for the flagship→first-branch jump; later milestones are upgrades
+let fantasyUnlocked = false;                 // late-game: unlocks fantasy goods + the monster crowd that buys them
 
 // teardown boundary: store.children / OBSTACLES up to here are structural + decoration (never torn down)
 const BASE_CHILD = store.children.length;
@@ -1338,22 +1414,23 @@ function clearEquip(){
   }
   OBSTACLES.length = BASE_OBST;
   gondolas.length = 0; slots.length = 0; hitMeshes.length = 0;
+  tills.length = 1; extraCashiers.length = 0;   // keep the base lane; extra lanes are re-placed from `owned`
 }
 function placeEquipFamily(fam, count){
   const plan = EQUIP[fam]; const n = Math.min(count|0, plan.length);
   for(let i=0;i<n;i++) plan[i]();
 }
-// build the store for a level. L1 = the full fixed flagship (onboarding / demo);
-// L2+ = whatever the player has unlocked (`owned`), so a new branch starts sparse.
-function buildStore(lvl){
+// build the store from whatever the player owns (the flagship starts full; upgrades grow it).
+function buildStore(){
   clearEquip();
-  const counts = (lvl<=1) ? EQUIP_FULL : owned;
-  EQUIP_FAMS.forEach(f => placeEquipFamily(f, counts[f]||0));
-  // open fully stocked: every shelf gets a resident category from its family, then is filled
-  for(const s of slots){ s.assignedCat = s.fam[(Math.random()*s.fam.length)|0]; fillSlot(s, s.assignedCat); }
+  EQUIP_FAMS.forEach(f => placeEquipFamily(f, owned[f]||0));
+  // open fully stocked: every shelf gets a resident category from its family, then is filled.
+  // once "after dark" is unlocked, fantasy goods join the rotation on ambient/frozen fixtures so the
+  // monster crowd actually finds (high-margin) things to buy instead of all walking out empty-handed.
+  for(const s of slots){ const pool = famCats(s.fam); s.assignedCat = pool[(Math.random()*pool.length)|0]; fillSlot(s, s.assignedCat); }
   refreshPosters();   // (#66) re-skin the wall posters to match what's fitted out, in unlock order
 }
-buildStore(1);   // initial flagship; restore/level-change rebuilds at the real level
+buildStore();   // initial flagship; restore/upgrade rebuilds from the live `owned`
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  CUSTOMERS — want a category, navigate (with avoidance) to a matching slot
@@ -1399,6 +1476,14 @@ function currentPeriod(){
   for(const p of PERIODS){ acc += p.frac; if(f < acc) return p; }
   return PERIODS[PERIODS.length-1];
 }
+// the current crowd mix — period blend, plus the fantasy crowd once unlocked
+function effMix(){
+  const mix = currentPeriod().mix;
+  if(!fantasyUnlocked) return mix;
+  const m = Object.assign({}, mix);
+  for(const a of MONSTER_ARCHES) m[a] = 2;   // a modest haunt mixed into the regular shoppers
+  return m;
+}
 // weighted pick of an archetype key from a {key:weight} mix
 function pickArch(mix){
   let total = 0; for(const k in mix) total += mix[k];
@@ -1409,7 +1494,7 @@ function pickArch(mix){
 
 function spawnCustomer(demo=false, forceWant=null){
   // pick a shopper TYPE from the current period's crowd, then their look + craving
-  const arch = ARCH[pickArch(currentPeriod().mix)];
+  const arch = ARCH[pickArch(effMix())];
   const make = CHARACTERS[arch.char] || ROSTER[(Math.random()*ROSTER.length)|0];
   const g = make(); g.scale.setScalar(0.62); scene.add(g);
   // personal lane: spreads the single door + junction chokepoint into a band so customers don't pile up.
@@ -1451,11 +1536,14 @@ function spawnCustomer(demo=false, forceWant=null){
 
 function swingLimbs(c){
   const rig = c.g.userData.rig; if(!rig) return; const sw=Math.sin(c.bob)*0.6;
-  rig.legL.rotation.x=sw; rig.legR.rotation.x=-sw; rig.armL.rotation.x=-sw*0.85; rig.armR.rotation.x=sw*0.85;
+  const ab = c.g.userData.armBase || 0;   // zombie reach: walk-swing layers on top of a forward base
+  rig.legL.rotation.x=sw; rig.legR.rotation.x=-sw; rig.armL.rotation.x=ab-sw*0.85; rig.armR.rotation.x=ab+sw*0.85;
 }
 function restLimbs(c, dt){
   const rig=c.g.userData.rig; if(!rig) return; const k=Math.min(1,dt*10);
-  for(const j of [rig.legL,rig.legR,rig.armL,rig.armR]) j.rotation.x += (0-j.rotation.x)*k;
+  const ab = c.g.userData.armBase || 0;
+  rig.legL.rotation.x += (0-rig.legL.rotation.x)*k; rig.legR.rotation.x += (0-rig.legR.rotation.x)*k;
+  rig.armL.rotation.x += (ab-rig.armL.rotation.x)*k; rig.armR.rotation.x += (ab-rig.armR.rotation.x)*k;
 }
 
 // push a point out of every obstacle rect (nearest edge) + out of other customers
@@ -1567,12 +1655,13 @@ function routeClerk(k, stand){
   const SIDE = cx>=0 ? SIDE_E : SIDE_W;
   k.path=[{x:SIDE, z:cz}, {x:SIDE, z:sz}, {x:sx, z:sz}];
 }
-// checkout queue point — in front of the counter (counter sits to the -z/north of this point)
-const CHECKOUT_STAND = new THREE.Vector3(2.4, 0, -3.55);
-// after grabbing goods, head to the checkout (out to a side corridor → junction → register)
+// after grabbing goods, head to the NEAREST checkout (out to a side corridor → junction → register)
 function routeToCheckout(c){
-  const SIDE = c.g.position.x >= 0 ? SIDE_E : SIDE_W;
-  c.path = [ {x:SIDE, z:c.g.position.z}, {x:SIDE, z:JUNC_Z}, {x:CHECKOUT_STAND.x, z:CHECKOUT_STAND.z} ];
+  let till = tills[0], bd = 1e9;                       // pick the closest open till → 2nd lane splits the queue
+  for(const t of tills){ const d = Math.hypot(t.pos.x - c.g.position.x, t.pos.z - c.g.position.z); if(d < bd){ bd = d; till = t; } }
+  c.till = till;
+  const SIDE = till.pos.x >= 0 ? SIDE_E : SIDE_W;       // approach down the corridor on the till's own side
+  c.path = [ {x:SIDE, z:c.g.position.z}, {x:SIDE, z:JUNC_Z}, {x:till.pos.x, z:till.pos.z} ];
 }
 // route back to the door for exit (mirror: out to a side corridor → junction → door)
 function routeToExit(c){
@@ -1670,22 +1759,28 @@ const CLERK_WAGE = 18;                          // each clerk's daily wage, sett
 //    (Calendar rent was the death-spiral — opening a fresh branch on day-N inherited day-N's huge rent with day-1 capacity.)
 const RENT_BASE = 18, RENT_PER_UNIT = 7, RENT_LEVEL = 0.18;   // base + per-fixture floor cost + a small per-branch prestige premium
 function rentFor(){ return Math.round(RENT_BASE*(1 + RENT_LEVEL*(level-1)) + RENT_PER_UNIT*drawUnits()); }
-// ── milestone goals: a forever "make the number bigger" target chain (net-worth tiers) ──
-const GOALS = [80, 200, 450, 1000, 2200, 4800];
+// ── endless milestone goals (net-worth tiers) ──────────────────────────────────
+// Low base + gentle 1.3× growth: the first tiers fall in a day or two (~¥100/day is plenty),
+// and later gaps stretch only as fast as the store's own earning power. No cap → always one
+// more upgrade ahead. goalAt(0)=60, (1)=138, (2)=239, (3)=371 … cumulative net worth.
+function goalAt(i){ return Math.round(60 * (Math.pow(1.3, (i|0)+1) - 1) / 0.3); }
+const BRANCH_EVERY = 6;   // every Nth upgrade the card also offers an OPTIONAL new branch
+const FANTASY_AT   = 4;   // from this milestone on, the card offers the one-time "after dark" fantasy unlock
 let bankrupt=false;
 // ── store stats are driven entirely by the fixtures you own (#61 — the old buy-a-level levers were folded in here) ──
 function drawUnits(){ return (owned.shelf||0)+(owned.fridge||0)+(owned.coffee||0)+(owned.rack||0); }  // total pull of the floor
 function stockUnits(){ return (owned.shelf||0)+(owned.fridge||0); }                                   // the stockable fixtures
 function spawnGapMul(){ return Math.max(0.5, Math.pow(0.96, drawUnits())); }   // 招客: a fuller floor draws a faster crowd
 function custCap(){ return Math.min(14, 4 + Math.round(drawUnits()*0.5)); }    // 招客: more fixtures → more shoppers at once
-function priceMul(){ return varietyMult(); }                                   // 加价: a varied range lets you charge a touch more (synergy)
+function priceMul(){ return varietyMult() * (1 + 0.06*marginLvl); }            // 加价: variety synergy × the (endless) profit-margin upgrade
+function branchMult(){ return 1 + 0.25*branches; }                             // each optional new branch lifts ALL takings (shelf + coffee + rack)
 function restockSecs(){ return Math.max(0.5, RESTOCK_TIME*Math.pow(0.94, stockUnits())); }  // 理货: more aisles → tighter restock throughput
 // ── equipment economy (#61): each unlocked fixture is a real earner. Stacking the same
 //    family keeps paying but with soft diminishing returns; spreading across families pays a synergy bonus.
 // soft diminishing curve: the k-th identical fixture is worth 0.85^(k-1) of the first, so stacking the
 // same family ("coffee empire") always pays a little more but never hard-caps — never reaches zero.
 function dimSum(n){ let s=0; for(let i=0;i<(n|0);i++) s += Math.pow(0.85,i); return s; }   // 0→0, 1→1, 2→1.85, 3→2.62 …
-function varietyMult(){ const k = EQUIP_FAMS.reduce((a,f)=>a+((owned[f]||0)>0?1:0),0); return 1 + 0.05*Math.max(0,k-1); }  // all 4 families → +15% margin
+function varietyMult(){ const k = PROD_FAMS.reduce((a,f)=>a+((owned[f]||0)>0?1:0),0); return 1 + 0.05*Math.max(0,k-1); }  // all 4 product families → +15% margin
 // realize an expected fractional count as a whole number (floor + the remainder as a coin flip)
 function realizeCount(exp){ return Math.floor(exp) + (Math.random() < (exp%1) ? 1 : 0); }
 // coffee bar: high-margin cups grabbed at the till. Expected cups/shopper ∝ dimSum(bars) → strictly diminishing per added bar.
@@ -1694,7 +1789,7 @@ function coffeeSale(){ const cups = realizeCount(0.32 * dimSum(owned.coffee)); l
 // checkout snack rack: cheap impulse grabs. Expected grabs/shopper ∝ dimSum(racks) → strictly diminishing per added rack.
 function rackSale(){ const grabs = realizeCount(0.34 * dimSum(owned.rack)); let v=0;
   for(let i=0;i<grabs;i++) v += Math.round(3 + Math.random()*3); return v; }                // each grab ~¥3-6
-let cash=START_CASH, displayedCash=START_CASH, day=1, goalIdx=0, level=1, timeLeft=DAY_LENGTH, running=true, started=false,
+let cash=START_CASH, displayedCash=START_CASH, day=1, goalIdx=0, level=1, marginLvl=0, branches=0, timeLeft=DAY_LENGTH, running=true, started=false,
     spawnTimer=0, spawnGap=2.8, elapsed=0, combo=0,
     custDone=0, custLost=0, tidyHits=0,
     dayRevenue=0, dayRestock=0, dayHire=0,        // per-day tallies: takings / cost-of-goods-sold / mid-day hire fees
@@ -1715,23 +1810,26 @@ if(A.isInAigram && A.telegramId){
     .then(r=>{ lbCurrentUser = (r && r.data) ? r.data : r; }).catch(()=>{});
 }
 function runSnapshot(){
-  return { v:2, cash:Math.round(cash), day, goalIdx, level,
+  return { v:3, cash:Math.round(cash), day, goalIdx, level, marginLvl, branches, fantasyUnlocked,
            owned:Object.assign({}, owned), unlockLog:unlockLog.slice(), clerks:clerks.length, hiScore:Math.round(hiScore) };
 }
 function applyRunState(s){
-  if(!s || (s.v!==1 && s.v!==2)) return;
+  if(!s || (s.v!==1 && s.v!==2 && s.v!==3)) return;
   cash = (typeof s.cash==='number') ? s.cash : cash;
   displayedCash = cash; cashNumEl.textContent = String(Math.round(cash));
-  day = s.day|0 || 1; goalIdx = s.goalIdx|0; level = Math.max(1, s.level|0 || 1);
+  day = s.day|0 || 1; goalIdx = s.goalIdx|0;
+  marginLvl = Math.max(0, s.marginLvl|0); branches = Math.max(0, s.branches|0);
+  level = 1 + branches;                                  // prestige tier is driven by branches now (rent scaling)
   hiScore = Math.max(hiScore, s.hiScore|0); localStorage.setItem(HISCORE_KEY, hiScore);
-  // restore the fitted-out fixtures (v1 saves have no `owned` → derive: L1 full, L2+ at least the base)
+  // restore the fitted-out fixtures; older saves with no `owned` default to the starting loadout
   if(s.owned && typeof s.owned==='object'){ owned = {}; EQUIP_FAMS.forEach(f => owned[f] = Math.max(0, s.owned[f]|0)); }  // stacking is uncapped (coffee empire) → don't clamp to EQUIP_FULL
-  else { owned = (level<=1) ? Object.assign({}, EQUIP_FULL) : Object.assign({}, L2_BASE); }
+  else { owned = Object.assign({}, EQUIP_START); }
+  fantasyUnlocked = !!s.fantasyUnlocked;                  // restore the late-game fantasy/monster unlock
   unlockLog = Array.isArray(s.unlockLog) ? s.unlockLog.filter(f=>EQUIP_FAMS.includes(f)) : [];   // (#66) restore the fit-out order
   const want = Math.max(1, s.clerks|0);                  // a branch can run on a single clerk
   while(clerks.length < want) spawnClerk();              // restore the hired floor staff
   while(clerks.length > want){ const k=clerks.pop(); scene.remove(k.g); } clerkSpot=clerks.length;  // …and shed any extra spawned at boot
-  buildStore(level);                                     // stand the store back up at the restored level + fixtures
+  buildStore();                                          // stand the store back up from the restored `owned`
   setDayLabel();                                         // (buildStore, not rebuildStore: restore only runs pre-play, before tidyEls/customers exist — TDZ-safe)
 }
 function localSave(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(runSnapshot())); }catch(e){} }
@@ -1864,10 +1962,10 @@ let panelSlot = null;
 function openCatPanel(s){
   panelSlot = s;
   catpanelGrid.innerHTML = '';
-  for(const id of s.fam){
+  for(const id of famCats(s.fam)){
     const cat = CAT[id];
     const b = document.createElement('button');
-    b.className = 'chip'+(id===s.assignedCat?' sel':'');
+    b.className = 'chip'+(id===s.assignedCat?' sel':'')+(cat.fantasy?' fantasy':'');
     b.innerHTML = `<div class="sil" style="background-image:url(${silhouetteURL(cat.kind, cat.col)})"></div><span class="lbl">${catName(cat)}</span>`;
     b.addEventListener('click', ()=>setAssignedCat(s, id));      // onClick (not pointerdown) so the close-click can't bleed to the canvas behind
     catpanelGrid.appendChild(b);
@@ -1949,38 +2047,69 @@ const EQ_ICON = {
   fridge: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='5' y='3' width='14' height='18' rx='1.6' fill='#cfeeea' stroke='#2a211a' stroke-width='2'/><line x1='5' y1='10' x2='19' y2='10' stroke='#2a211a' stroke-width='2'/><line x1='15.4' y1='5.4' x2='15.4' y2='8' stroke='#2a211a' stroke-width='2'/><line x1='15.4' y1='12.4' x2='15.4' y2='15.4' stroke='#2a211a' stroke-width='2'/></svg>`,
   coffee: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M5 9h12v5a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5z' fill='#f4b63f' stroke='#2a211a' stroke-width='2' stroke-linejoin='round'/><path d='M17 10.5h2.2a2 2 0 0 1 0 4H17' fill='none' stroke='#2a211a' stroke-width='2'/><path d='M8 3.2c-1 1.4 1 2.4 0 3.8M12 3.2c-1 1.4 1 2.4 0 3.8' fill='none' stroke='#2a211a' stroke-width='1.6' stroke-linecap='round'/></svg>`,
   rack:   `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='6' y='3' width='12' height='18' rx='1.4' fill='none' stroke='#2a211a' stroke-width='2'/><line x1='6' y1='9' x2='18' y2='9' stroke='#2a211a' stroke-width='2'/><line x1='6' y1='15' x2='18' y2='15' stroke='#2a211a' stroke-width='2'/><rect x='8' y='4.6' width='2.4' height='3' fill='#e0603f'/><rect x='11.4' y='4.6' width='2.4' height='3' fill='#3fb6ac'/><rect x='8' y='10.6' width='2.4' height='3' fill='#f4b63f'/><rect x='11.4' y='10.6' width='2.4' height='3' fill='#e0603f'/><rect x='8' y='16.6' width='2.4' height='3' fill='#3fb6ac'/><rect x='11.4' y='16.6' width='2.4' height='3' fill='#f4b63f'/></svg>`,
+  margin: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='9' fill='#f4b63f' stroke='#2a211a' stroke-width='2'/><path d='M7.5 14.5l3-3 2 2 4-5' fill='none' stroke='#2a211a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/><path d='M14 8.5h3v3' fill='none' stroke='#2a211a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>`,
+  branch: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M4 9l1.5-4h13L20 9z' fill='#3fb6ac' stroke='#2a211a' stroke-width='2' stroke-linejoin='round'/><rect x='5' y='9' width='14' height='11' fill='#cfeeea' stroke='#2a211a' stroke-width='2'/><rect x='9.2' y='13' width='5.6' height='7' fill='#3fb6ac' stroke='#2a211a' stroke-width='1.4'/><path d='M17.2 3v4M15.2 5h4' stroke='#e0603f' stroke-width='2' stroke-linecap='round'/></svg>`,
+  checkout: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='3' y='11' width='18' height='8' rx='1.4' fill='#cfeeea' stroke='#2a211a' stroke-width='2'/><rect x='3' y='11' width='8' height='3' fill='#3fb6ac'/><rect x='13' y='4' width='6.5' height='6' rx='1' fill='#f4b63f' stroke='#2a211a' stroke-width='2'/><line x1='6.5' y1='19' x2='6.5' y2='21.5' stroke='#2a211a' stroke-width='2'/><line x1='17.5' y1='19' x2='17.5' y2='21.5' stroke='#2a211a' stroke-width='2'/></svg>`,
+  fantasy: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2.5l2.2 5.6 6 .4-4.6 3.9 1.5 5.8L12 20.6 6.4 18.2l1.5-5.8L3.3 8.5l6-.4z' fill='#9e1414' stroke='#2a211a' stroke-width='1.8' stroke-linejoin='round'/><circle cx='12' cy='12' r='2' fill='#d98aa0'/></svg>`,
 };
 const EQ_ICON_URL = {}; for(const k in EQ_ICON){ EQ_ICON_URL[k] = 'data:image/svg+xml,'+encodeURIComponent(EQ_ICON[k]); }
-const EQ_NAME = { shelf:'eq_shelf', fridge:'eq_fridge', coffee:'eq_coffee', rack:'eq_rack' };
+const EQ_NAME = { shelf:'eq_shelf', fridge:'eq_fridge', coffee:'eq_coffee', rack:'eq_rack', margin:'eq_margin', branch:'eq_branch', checkout:'eq_checkout', fantasy:'eq_fantasy' };
 function openUnlock(){
-  // the new branch is already standing behind the card (rebuilt sparse); offer up to 3
-  // families that still have room to grow, weighted toward fixtures the player lacks.
-  const room = EQUIP_FAMS.slice();                                      // every family re-pickable: build a coffee empire if you want
-  const fresh = room.filter(f => (owned[f]||0)===0);                    // brand-new toys first
-  const rest  = room.filter(f => (owned[f]||0)>0);
-  for(const arr of [fresh, rest]){ for(let i=arr.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [arr[i],arr[j]]=[arr[j],arr[i]]; } }
-  const picks = fresh.concat(rest).slice(0,3);
-  openingEl.classList.remove('show');                    // the fit-out card replaces the headliner pick for this beat
-  unlockTitleEl.textContent = t(branchFirst ? 'unlock_title' : 'unlock_title_up');
+  // build the option pool. There is ALWAYS something to upgrade: the profit-margin lever is
+  // endless and always offered, plus two random fixtures, plus an OPTIONAL branch every Nth time.
+  const picks = [{type:'margin'}];
+  const offerFantasy = !fantasyUnlocked && goalIdx >= FANTASY_AT;  // one-time "after dark" unlock, late game
+  const fams = EQUIP_FAMS.filter(f => (owned[f]||0) < EQUIP[f].length);   // only fixtures with room left to grow
+  for(let i=fams.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [fams[i],fams[j]]=[fams[j],fams[i]]; }
+  const fixSlots = offerFantasy ? 1 : 2;                          // make room on the card when fantasy is also offered
+  for(let k=0;k<fixSlots && k<fams.length;k++) picks.push({type:'fix', fam:fams[k]});
+  if(offerFantasy) picks.push({type:'fantasy'});
+  if(goalIdx % BRANCH_EVERY === 0) picks.push({type:'branch'});   // optional — the player can ignore it and keep upgrading
+  openingEl.classList.remove('show');                    // the upgrade card replaces the headliner pick for this beat
+  unlockTitleEl.textContent = t('unlock_title_up');
   unlockSubEl.textContent = t('unlock_pick');
   unlockPicksEl.innerHTML = '';
-  for(const fam of picks){
+  for(const p of picks){
+    const key = p.type==='fix' ? p.fam : p.type;
+    let sub;
+    if(p.type==='fix')          sub = t('eq_have',{n:owned[p.fam]||0});
+    else if(p.type==='margin')  sub = t('eq_margin_sub',{n:6});
+    else if(p.type==='branch')  sub = t('eq_branch_sub',{n:25});
+    else if(p.type==='fantasy') sub = t('eq_fantasy_sub');
     const b = document.createElement('button');
-    b.className = 'opick';
-    b.innerHTML = `<span class="sil" style="background-image:url(&quot;${EQ_ICON_URL[fam]}&quot;)"></span>`+
-                  `<span class="lbl">${t(EQ_NAME[fam])}</span>`+
-                  `<span class="cnt">${t('eq_have',{n:owned[fam]||0})}</span>`;
-    b.addEventListener('click', ()=>chooseUnlock(fam));
+    b.className = 'opick' + (p.type==='branch' ? ' branch' : '') + (p.type==='fantasy' ? ' fantasy' : '');
+    b.innerHTML = `<span class="sil" style="background-image:url(&quot;${EQ_ICON_URL[key]}&quot;)"></span>`+
+                  `<span class="lbl">${t(EQ_NAME[key])}</span>`+
+                  `<span class="cnt">${sub}</span>`;
+    b.addEventListener('click', ()=>chooseUnlock(p));
     unlockPicksEl.appendChild(b);
   }
   unlockEl.classList.add('show');
 }
-function chooseUnlock(fam){
-  owned[fam] = (owned[fam]||0) + 1;
-  unlockLog.push(fam);                                     // (#66) record the fit-out order → personalises the poster wall
+// upgrade-unlock notification: a comic banner naming exactly what was just added
+let _utTimer=null;
+function showUnlockToast(iconKey, name, sub){
+  const el = document.getElementById('unlockToast');
+  el.querySelector('.utkick').textContent = t('unlock_toast');
+  el.querySelector('.utico').style.backgroundImage = `url("${EQ_ICON_URL[iconKey]}")`;
+  el.querySelector('.utname').textContent = name;
+  el.querySelector('.utsub').textContent = sub;
+  el.classList.remove('hide','show'); void el.offsetWidth;   // restart the pop animation
+  el.classList.add('show');
+  tone(1320,0.09,'triangle',0,0.16); tone(1660,0.12,'triangle',0.09,0.15);
+  if(_utTimer) clearTimeout(_utTimer);
+  _utTimer = setTimeout(()=>{ el.classList.remove('show'); el.classList.add('hide'); }, 1500);
+}
+function chooseUnlock(p){
+  let icon, name, sub;
+  if(p.type==='fix'){ owned[p.fam] = (owned[p.fam]||0) + 1; unlockLog.push(p.fam);   // (#66) record fit-out order → poster wall
+    icon=p.fam; name=t(EQ_NAME[p.fam]); sub=t('eq_installed'); }
+  else if(p.type==='margin'){ marginLvl++; icon='margin'; name=t('eq_margin'); sub=t('eq_margin_sub',{n:6}); }
+  else if(p.type==='branch'){ branches++; level = 1 + branches; icon='branch'; name=t('eq_branch'); sub=t('eq_branch_open'); }
+  else if(p.type==='fantasy'){ fantasyUnlocked=true; icon='fantasy'; name=t('eq_fantasy'); sub=t('eq_fantasy_open'); }
   unlockEl.classList.remove('show');
-  blip(880,0.1);
-  rebuildStore(level);                                     // drop the new fixture in, stocked
+  showUnlockToast(icon, name, sub);                        // announce exactly what was unlocked
+  rebuildStore();                                          // re-stand the store with the new upgrade applied
   localSave();
   openOpening();                                           // then the usual headliner pick for the day
 }
@@ -2012,11 +2141,7 @@ function sfxLost(){ tone(392,0.15,'sawtooth',0,0.16); tone(196,0.24,'sawtooth',0
 
 // ── milestone goal progress (current net-worth tier) ──
 function renderGoal(){
-  if(goalIdx >= GOALS.length){
-    goalTxtEl.textContent=t('goals_all'); goalNowEl.textContent=t('net')+' ¥'+Math.max(0,cash);
-    goalFillEl.style.width='100%'; return;
-  }
-  const g = GOALS[goalIdx];
+  const g = goalAt(goalIdx);
   goalTxtEl.textContent=t('goal_lbl')+' ¥'+g; goalNowEl.textContent=t('net')+' ¥'+Math.max(0,cash);
   goalFillEl.style.width = Math.max(0, Math.min(1, cash/g))*100 + '%';
 }
@@ -2033,14 +2158,9 @@ function renderFin(){
   finCostEl.textContent = '-¥'+dayRestock;
   finRentEl.textContent = '-¥'+rentFor();                // both settle out of the till at day close
   finWageEl.textContent = '-¥'+(clerks.length*CLERK_WAGE);
-  if(goalIdx >= GOALS.length){
-    finGoalTxtEl.textContent=t('goals_all'); finGoalNowEl.textContent=t('net')+' ¥'+Math.max(0,cash);
-    finGoalFillEl.style.width='100%';
-  } else {
-    const g = GOALS[goalIdx];
-    finGoalTxtEl.textContent=t('goal_lbl')+' ¥'+g; finGoalNowEl.textContent=t('net')+' ¥'+Math.max(0,cash);
-    finGoalFillEl.style.width = Math.max(0, Math.min(1, cash/g))*100 + '%';
-  }
+  const g = goalAt(goalIdx);
+  finGoalTxtEl.textContent=t('goal_lbl')+' ¥'+g; finGoalNowEl.textContent=t('net')+' ¥'+Math.max(0,cash);
+  finGoalFillEl.style.width = Math.max(0, Math.min(1, cash/g))*100 + '%';
 }
 function openFin(){ if(bankrupt) return; finOpen=true; renderFin(); finpanelEl.classList.add('show'); }
 function closeFin(){ finOpen=false; finpanelEl.classList.remove('show'); }
@@ -2059,23 +2179,16 @@ function endOfDay(){
   const wage = wageOnly + dayHire;                              // total 人力 shown on the receipt = daily wage + hire fees
   const net = dayRevenue - dayRestock - wage - rent;           // takings − COGS − labour − rent
   bankrupt = cash < 0;
-  // milestone check (only when solvent): advancing through every tier we just crossed
+  // milestone check (only when solvent): clear ONE tier per day → one upgrade card next morning
   let hitGoal = null;
-  const prevLevel = level;
-  if(!bankrupt) while(goalIdx < GOALS.length && cash >= GOALS[goalIdx]){ hitGoal = GOALS[goalIdx]; goalIdx++; }
-  if(hitGoal!==null){
-    level = 1 + goalIdx;                                  // each goal cleared grows the store one tier
-    branchFirst = (prevLevel===1);                        // first milestone = open your own branch; later ones = upgrades
-    if(branchFirst) owned = Object.assign({}, L2_BASE);   // leaving the flagship → first branch starts sparse
-    branchPending = true;                                 // next day opens the fit-out card before trading
-  }
+  if(!bankrupt && cash >= goalAt(goalIdx)){ hitGoal = goalAt(goalIdx); goalIdx++; branchPending = true; }
   if(cash > hiScore){ hiScore = cash; localStorage.setItem(HISCORE_KEY, hiScore); }
   persistRun();                                          // platform: save run + submit 历史最高资产 every day-close
 
   const stampEl = document.getElementById('stamp');
   overEl.classList.toggle('bust', bankrupt);
   if(bankrupt){ stampEl.textContent=t('stamp_bankrupt',{n:day}); }
-  else if(hitGoal!==null){ stampEl.textContent=t(branchFirst ? 'stamp_branch' : 'stamp_upgrade'); }
+  else if(hitGoal!==null){ stampEl.textContent=t('stamp_upgrade'); }
   else { stampEl.textContent='DAY '+day; }
   document.querySelector('#over .head').textContent = bankrupt ? t('head_liquidation')
     : (hitGoal!==null ? t('branch_head') : t('profit_head'));
@@ -2091,7 +2204,7 @@ function endOfDay(){
   // bankruptcy hides the goal bar; a solvent day shows the milestone progress
   document.getElementById('goal').style.display = bankrupt ? 'none' : '';
   document.getElementById('replay').textContent = bankrupt ? t('btn_replay')
-    : (hitGoal!==null ? t(branchFirst ? 'branch_btn' : 'upgrade_btn') : t('btn_next'));
+    : (hitGoal!==null ? t('upgrade_btn') : t('btn_next'));
   // a solvent run has no other exit → offer an explicit "start over" (bankruptcy already restarts via the replay button)
   restartRunEl.style.display = bankrupt ? 'none' : 'block'; disarmRestart();
   if(!bankrupt){ renderGoal(); }
@@ -2121,23 +2234,23 @@ restartRunEl.addEventListener('click', ()=>{
   resetRun();                                            // full wipe → fresh DAY 1 flagship + localSave()
   cloudSave();                                           // also overwrite the cloud copy so a reload / another device can't resurrect the old run
 });
-// full fixture teardown + rebuild at a given level: clears live customers, clerk targets,
-// and the per-gondola tidy bars (all hold refs into the old slot/gondola set) before
-// clearEquip()/buildStore() swap the fixtures. Safe to call at runtime only (after tidyEls exists).
-function rebuildStore(lvl){
+// full fixture teardown + rebuild: clears live customers, clerk targets, and the per-gondola
+// tidy bars (all hold refs into the old slot/gondola set) before clearEquip()/buildStore()
+// swap the fixtures. Safe to call at runtime only (after tidyEls exists).
+function rebuildStore(){
   for(let i=customers.length-1;i>=0;i--){ removeCustomer(i); }
   for(const k of clerks){ if(k.slot) k.slot.clerkClaim=null; k.slot=null; k.phase='idle'; k.path=[]; }
   if(typeof tidyEls!=='undefined'){ tidyEls.forEach(r=>r.el.remove()); tidyEls.clear(); }
-  buildStore(lvl);                                       // buildStore() clears + re-stocks the new fixture set
+  buildStore();                                          // buildStore() clears + re-stocks the new fixture set
 }
 function resetRun(){                                    // bankrupt → wipe everything back to a fresh DAY 1
   bankrupt=false; overEl.classList.remove('bust');
   cash=START_CASH; displayedCash=START_CASH; cashNumEl.textContent=String(START_CASH);
-  day=0; goalIdx=0; level=1;
-  owned = Object.assign({}, EQUIP_FULL); unlockLog = []; branchPending=false;   // back to the full flagship
+  day=0; goalIdx=0; level=1; marginLvl=0; branches=0;
+  owned = Object.assign({}, EQUIP_START); unlockLog = []; branchPending=false; fantasyUnlocked=false;   // back to the opening loadout
   // hire fees & extra clerks reset: shed clerks back down to the opening two
   while(clerks.length>2){ const k=clerks.pop(); scene.remove(k.g); } clerkSpot=clerks.length;
-  rebuildStore(1);                                       // fresh flagship, re-stocked from scratch
+  rebuildStore();                                        // fresh flagship, re-stocked from scratch
   localSave();                                           // platform: persist the wiped run so a reload starts fresh too
   startNextDay();
 }
@@ -2154,9 +2267,7 @@ function startNextDay(){
   setDayLabel();
   if(branchPending){
     branchPending = false;
-    while(clerks.length>1){ const k=clerks.pop(); scene.remove(k.g); } clerkSpot=clerks.length;  // a new store opens lean: ONE restocking clerk, hire more as it grows
-    rebuildStore(level);                               // stand up the sparse new branch behind the card
-    openUnlock();                                      // fit out one fixture, then the headliner pick follows
+    openUnlock();                                      // pick this milestone's upgrade, then the headliner pick follows
   } else {
     openOpening();                                     // re-open the start gate for the new day's headliner
   }
@@ -2190,7 +2301,7 @@ function ensureTidyBar(gd){
 function tick(){
   let dt=Math.min(clock.getDelta(),0.05);
   if(finOpen) dt=0;                                    // books open → freeze the shift so checking the numbers is never a time trap
-  controls.update(); updateTweens(dt); updateDust(dt); updateWalls(dt); animateCashier(dt);
+  controls.update(); updateTweens(dt); updateDust(dt); updateWalls(dt); animateCashier(dt); animateExtraCashiers(dt);
 
   // smooth cash counter (lerp displayed → real, like a register tally)
   if(displayedCash !== cash){
@@ -2292,8 +2403,8 @@ function tick(){
       if(follow(c,2.6,dt)){                     // arrived at the register → settle up, then leave
         c.t+=dt; faceShelf(c,dt);
         if(c.t>0.5){
-          custDone+=1; cashier.userData.pulse = 1;            // ring it up — fire the big scan sweep
-          let price = CAT[c.want].price * priceMul();        // customer pays the shelf price (× any 加价 upgrade)
+          custDone+=1; (c.till && c.till.cashier ? c.till.cashier : cashier).userData.pulse = 1;   // ring it up at the customer's till — fire the scan sweep
+          let price = CAT[c.want].price * priceMul() * branchMult();   // shelf price × 加价 upgrade × branch prestige
           if(headliner && c.want===headliner) price *= 1.5;  // 主打 commands a premium
           price = Math.round(price);
           const cost = CAT[c.want].cost;                     // cost of goods SOLD, realized here (never at restock) → no overstock drain
@@ -2301,10 +2412,10 @@ function tick(){
           addCash(margin); dayRevenue += price; dayRestock += cost;
           let gain = margin;
           // coffee bar — a high-margin cup grabbed at the till (scales with how many bars you've stacked)
-          const coff = coffeeSale();
+          const coff = Math.round(coffeeSale() * branchMult());
           if(coff>0){ addCash(coff); dayRevenue += coff; dayCoffee += coff; gain += coff; }
           // checkout snack rack — a cheap impulse add-on (scales with how many racks you own)
-          const rk = rackSale();
+          const rk = Math.round(rackSale() * branchMult());
           if(rk>0){ addCash(rk); dayRevenue += rk; dayRack += rk; gain += rk; }
           if(c.tidy){ tidyHits+=1; setCombo(combo+1); const bonus=2+Math.floor(combo/3)*2; addCash(bonus); dayRevenue+=bonus; gain+=bonus;
             popText(c.g.position.clone().setY(2.4),'+¥'+gain,'tidy'); sfxCash(combo); }

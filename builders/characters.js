@@ -117,8 +117,32 @@ export function character(s){
     g.add(box(0.05,ah*0.7,0.04, P.panelD, aw/2-0.02, torsoY+0.02, az+0.18)); // muted keys
   }
 
+  // ── monster cues (fantasy customers) — each protrudes ≥0.2u so it reads at thumbnail scale ──
+  if(s.ears){ // pointed animal ears poking up off the crown (werewolf)
+    const ew=0.20, eh=0.30;
+    for(const sx of [-1,1]){
+      const ear = box(ew, eh, 0.12, s.skin, sx*(HW*0.40), topHead+eh*0.42, -0.02);
+      ear.rotation.z = -sx*0.32; g.add(ear);
+      g.add(box(ew*0.5, eh*0.45, 0.08, darken(s.skin,0.62), sx*(HW*0.40), topHead+eh*0.40, 0.03));
+    }
+  }
+  if(s.snout){ // muzzle pushed forward from the lower face + dark nose tip (werewolf)
+    g.add(box(HW*0.52, 0.22, 0.24, s.skin, 0, headY-0.10, fz+0.10));
+    g.add(box(0.13,0.11,0.10, EYE, 0, headY-0.05, fz+0.22));
+  }
+  if(s.cape){ // dark cape down the back + upturned collar wings (vampire)
+    g.add(box(BW+0.12, torsoH+legH*0.72, 0.06, s.cape, 0, torsoY-legH*0.22, -BD/2-0.07));
+    for(const sx of [-1,1]) g.add(box(0.16,0.30,0.10, s.cape, sx*(BW/2-0.01), torsoY+torsoH/2+0.06, -0.03));
+  }
+  if(s.fangs){ // two tiny white fangs below the face (vampire)
+    for(const sx of [-1,1]) g.add(box(0.05,0.11,0.05, P.white, sx*0.10, headY-HH*0.34, fz));
+  }
+
   g.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; } });
   g.userData.rig = { legL, legR, armL, armR };   // hip/shoulder pivots for walk animation
+  g.userData.armBase = s.armsOut ? -1.05 : 0;    // zombie holds arms forward; walk-swing layers on top of this base
+  // apply the static arm base immediately (rest pose for non-walking frames)
+  if(g.userData.armBase){ armL.rotation.x = armR.rotation.x = g.userData.armBase; }
   return g;
 }
 
@@ -198,4 +222,18 @@ export const CHARACTERS = {
   bigGuy: () => character({
     skin:P.skinD, top:darken(P.green,0.5), sleeve:darken(P.green,0.5), bottom:P.woodD, shoes:P.ironD,
     hair:P.hairGrey, hairStyle:'short', glasses:true, belt:P.accent, bw:1.10 }),
+
+  // ── fantasy customers (only spawn once the player unlocks fantasy goods) ──
+  // vampire: cold-pale skin, slicked black hair, blood-red cape + upturned collar, fangs
+  vampire: () => character({
+    skin:0xe3e6ec, top:0x23272f, sleeve:0x23272f, bottom:0x15171c, shoes:0x111317,
+    hair:0x14110f, hairStyle:'short', cape:0x7a1620, collar:darken(P.red,0.5), fangs:true, bw:1.02 }),
+  // werewolf: brown fur (no hair — the head IS the muzzle+ears), ragged dark shirt, broad
+  werewolf: () => character({
+    skin:0x7c6248, top:darken(P.woodD,0.92), sleeve:darken(P.woodD,0.92), bottom:darken(P.slate,0.78), shoes:0x2a2620,
+    ears:true, snout:true, bw:1.14 }),
+  // zombie: sickly green skin, sunken look, tattered purple shirt, arms reaching forward
+  zombie: () => character({
+    skin:0x8fb46a, top:darken(P.purple,0.5), sleeve:darken(P.purple,0.5), bottom:darken(P.green,0.4), shoes:0x2a2620,
+    hair:0x39331f, hairStyle:'short', armsOut:true, collar:darken(P.coral,0.5) }),
 };
