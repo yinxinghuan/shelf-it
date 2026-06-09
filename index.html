@@ -682,6 +682,18 @@ const ARCH = {
   fitWoman:    { char:'fitWoman',    wants:['drink','dairy','fruit','cold'] },
   chef:        { char:'chef',        wants:['veg','fruit','can','noodle','liquor'] },
   bigGuy:      { char:'bigGuy',      wants:['liquor','can','snack','drink','noodle'] },
+  // profession crowd — uniformed regulars, on-shift cravings
+  cop:         { char:'cop',         wants:['coffee','noodle','snack','drink'] },              // patrol coffee + a quick bite
+  nurse:       { char:'nurse',       wants:['coffee','dairy','fruit','sundry'] },              // 24-hour shift restock
+  firefighter: { char:'firefighter', wants:['drink','cold','snack','noodle'] },                // hydration break
+  construction:{ char:'construction',wants:['drink','cold','sundry','snack','noodle'] },       // jobsite supply run
+  delivery:    { char:'delivery',    wants:['drink','snack','cold','noodle'] },                // gig-worker between drops
+  // pop-culture crowd — alt-register cravings, after-dark friendly without being fantasy/horror
+  cowboy:      { char:'cowboy',      wants:['liquor','can','snack','noodle'] },                // dive-bar adjacent
+  punk:        { char:'punk',        wants:['liquor','cold','snack','drink'] },                // basement-show crowd
+  rapper:      { char:'rapper',      wants:['drink','snack','cold','icecream'] },              // refreshment, no booze
+  biker:       { char:'biker',       wants:['liquor','noodle','snack','drink'] },              // gas-and-go regular
+  goth:        { char:'goth',        wants:['cold','sundry','liquor','snack'] },               // night-owl staple
   // fantasy crowd — identity-bound cravings (mostly their signature good), only spawn once fantasy is unlocked
   vampire:     { char:'vampire',     wants:['blood','blood','blood','liquor'] },
   werewolf:    { char:'werewolf',    wants:['rawmeat','rawmeat','rawmeat','can'] },
@@ -695,9 +707,9 @@ const MONSTER_ARCHES = ['vampire','werewolf','zombie','ghost','skeleton','mummy'
 // `frac` = share of the day; `gap` = seconds between spawns (smaller = busier);
 // `mix` = weighted archetype blend, giving each period a distinct crowd.
 const PERIODS = [
-  { id:'morning', name:'早高峰', en:'Morning Rush', frac:0.34, gap:2.5, mix:{businessman:3, officeWoman:3, oldman:2, granny:2, student:1, blonde:1, fitWoman:2, chef:1} },
-  { id:'noon',    name:'午市',   en:'Midday',       frac:0.33, gap:1.5, mix:{businessman:2, officeWoman:2, darkWoman:2, blonde:2, granny:1, oldman:1, student:1, kid:1, chef:2, bigGuy:1, fitWoman:1} },
-  { id:'school',  name:'放学',   en:'After School', frac:0.33, gap:1.4, mix:{student:4, kid:4, blonde:1, darkWoman:1, officeWoman:1, teen:4, bigGuy:2} },
+  { id:'morning', name:'早高峰', en:'Morning Rush', frac:0.34, gap:2.5, mix:{businessman:3, officeWoman:3, oldman:2, granny:2, student:1, blonde:1, fitWoman:2, chef:1, cop:2, nurse:2, construction:2} },
+  { id:'noon',    name:'午市',   en:'Midday',       frac:0.33, gap:1.5, mix:{businessman:2, officeWoman:2, darkWoman:2, blonde:2, granny:1, oldman:1, student:1, kid:1, chef:2, bigGuy:1, fitWoman:1, delivery:3, construction:2, cop:1, cowboy:1, biker:1} },
+  { id:'school',  name:'放学',   en:'After School', frac:0.33, gap:1.4, mix:{student:4, kid:4, blonde:1, darkWoman:1, officeWoman:1, teen:4, bigGuy:2, firefighter:2, rapper:3, punk:2, biker:2, goth:2, cowboy:1, delivery:2} },
 ];
 const periodName = p => (LOCALE==='zh' ? p.name : p.en);   // time-of-day label in the active locale
 
