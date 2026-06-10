@@ -1674,8 +1674,9 @@ function spawnCustomer(demo=false, forceWant=null){
     </svg>`;
   wishesEl.appendChild(wishEl);
 
-  customers.push({ g, want, wishEl, wishRing:wishEl.querySelector('.r'),
-    phase:'seek', t:0, bob:Math.random()*6, patience:6.0, slot:null, path:[], demo, lane });
+  customers.push({ g, want, wants:arch.wants, wishEl,
+    wishRing:wishEl.querySelector('.r'), wishImg:wishEl.querySelector('image'),
+    phase:'seek', t:0, bob:Math.random()*6, patience:8.0, slot:null, path:[], demo, lane });
   if(!demo) sfxDoor();                                  // shopkeeper bell on real arrivals (skip attract-mode demo customers)
 }
 
@@ -1772,14 +1773,15 @@ function follow(c, speed, dt){
 }
 function faceShelf(c, dt){ let d=Math.PI-c.g.rotation.y; while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI; c.g.rotation.y+=d*Math.min(1,dt*8); }
 
-// nearest filled, matching, unclaimed slot
-function findSlot(c){
+// nearest filled, unclaimed slot of a given category
+function findSlotOf(c, cat){
   let best=null, bd=1e9;
-  for(const s of slots){ if(!s.filled || s.cat!==c.want || (s.claim&&s.claim!==c)) continue;
+  for(const s of slots){ if(!s.filled || s.cat!==cat || (s.claim&&s.claim!==c)) continue;
     const d=tmp2.set(s.standPos.x-c.g.position.x,0,s.standPos.z-c.g.position.z).length();
     if(d<bd){ bd=d; best=s; } }
   return best;
 }
+function findSlot(c){ return findSlotOf(c, c.want); }
 // grid route → slot stand, always staying in clear corridors/aisles (never cuts through an island)
 function routeToStand(c, stand){
   const sx = stand.x, sz = stand.z, SIDE = sx >= 0 ? SIDE_E : SIDE_W;
@@ -2702,12 +2704,21 @@ function tick(){
       c.wishEl.style.left = wx+'px'; c.wishEl.style.top = wy+'px';
     }
     if(c.phase==='seek'){
-      const s=findSlot(c);
+      let s=findSlot(c);
+      if(!s && c.wants){ // exact craving not in stock — settle for anything else they like (nearest first)
+        let bw=null, bd=1e9;
+        for(const w of c.wants){ if(w===c.want) continue;
+          const cand=findSlotOf(c,w); if(!cand) continue;
+          const d=tmp2.set(cand.standPos.x-c.g.position.x,0,cand.standPos.z-c.g.position.z).length();
+          if(d<bd){ bd=d; bw=w; s=cand; } }
+        if(s){ c.want=bw;
+          if(c.wishImg) c.wishImg.setAttribute('href', silhouetteURL(CAT[bw].kind, CAT[bw].col)); }
+      }
       if(s){ s.claim=c; c.slot=s; routeToStand(c,s.standPos); c.phase='go'; }
       else { // browse near the door junction; drain patience; sad-leave on timeout
         if(!c.path.length) c.path=[{x:-1.6+Math.random()*3.2, z:JUNC_Z+0.2}];
         if(follow(c,1.4,dt)) c.path=[];
-        c.patience-=dt; const k=Math.max(0,c.patience/6.0);
+        c.patience-=dt; const k=Math.max(0,c.patience/8.0);
         if(c.wishRing){
           c.wishRing.setAttribute('stroke-dashoffset', String((1-k)*150.8));
           c.wishRing.setAttribute('stroke', k>0.5?'#3fb6ac':(k>0.25?'#e0843b':'#e0483b'));
