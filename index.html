@@ -263,8 +263,14 @@
     filter:drop-shadow(2px 2px 0 rgba(21,17,14,.25));margin:2px 0;}
   #unlockToast .utname{font-family:var(--comic);font-size:27px;color:var(--ink);letter-spacing:.03em;line-height:1;}
   #unlockToast .utsub{font-size:12px;font-weight:800;color:var(--tealD);letter-spacing:.03em;}
-  /* ── SHELF · IT wordmark (matches the feed poster: all-yellow fill + hard red drop-shadow, no ink stroke) ── */
-  .brandmark{font-family:var(--comic);font-weight:400;line-height:1;letter-spacing:.02em;
+  /* ── SHELF · IT wordmark — match the wall posters' typeface (Arial Black + thick
+       ink stroke + colored fill). The players are reading that lettering on every
+       wall poster, so the start/end-screen logo using a different display font
+       (Bangers) was reading as "wrong". paint-order:stroke keeps the yellow fill
+       sitting cleanly ON TOP of the stroke instead of letting the outline chew
+       into the glyph interior. */
+  .brandmark{font-family:'Arial Black','Impact','PingFang SC',sans-serif;font-weight:900;line-height:1;letter-spacing:.01em;
+    -webkit-text-stroke:.045em var(--ink);paint-order:stroke fill;
     display:inline-flex;align-items:center;gap:.02em;-webkit-touch-callout:none;user-select:none;
     color:var(--yellow);white-space:nowrap;}
   .brandmark .b1,.brandmark .b2,.brandmark .dot{color:var(--yellow);}
