@@ -2037,7 +2037,53 @@ function submitScore(){
   try{ A.callAigramAPI('/note/aigram/ai/game/rank/score/save','POST',
         { session_id:A.gameUuid, score:Math.round(hiScore) }); }catch(e){}
 }
-function persistRun(){ localSave(); cloudSave(); submitScore(); }
+function persistRun(opts){ localSave(); cloudSave(); submitScore(); if (opts && opts.runEnded) trySendBeatNotify(hiScore); }
+
+// ── Leaderboard-beat 1:1 notify (score_beat) — see aigram-notify skill ────
+// Snapshot taken at kickoffGame; fired on bankrupt day-close (true end-of-run).
+let preRunBest = 0;
+function snapshotPreRunBest(){
+  if(!A.canRank || !A.telegramId) { preRunBest = 0; return; }
+  A.callAigramAPI('/note/aigram/ai/game/rank/score/list/by/session_id?session_id=' + A.gameUuid, 'GET')
+    .then(res => {
+      const rows = Array.isArray(res) ? res : (res && res.data) || [];
+      const meId = String(A.telegramId);
+      const me = rows.find(r => String(r.user_id) === meId);
+      preRunBest = me ? Number(me.score) || 0 : 0;
+    }).catch(() => { preRunBest = 0; });
+}
+async function trySendBeatNotify(myScore){
+  if(!A.canRank || !A.telegramId) return;
+  if(myScore <= preRunBest) return;
+  try {
+    const res = await A.callAigramAPI(
+      '/note/aigram/ai/game/rank/score/list/by/session_id?session_id=' + A.gameUuid, 'GET');
+    const rows = Array.isArray(res) ? res : (res && res.data) || [];
+    const meId = String(A.telegramId);
+    const beaten = rows
+      .filter(r => String(r.user_id) !== meId)
+      .map(r => ({ id: String(r.user_id), score: Number(r.score) || 0 }))
+      .filter(r => r.score < myScore && r.score > preRunBest)
+      .sort((a, b) => b.score - a.score)[0];
+    if (!beaten) return;
+    A.postAigramAPI('/note/aigram/ai/game/record/play', {
+      session_id: A.gameUuid,
+      event: 'score_beat',
+      config_json: { actions: [{
+        type: 'notify',
+        target_user_id: beaten.id,
+        image: {
+          ref_url: 'https://yinxinghuan.github.io/games/posters/shelf-it.png',
+          prompt: 'A low-poly isometric corner store with stocked shelves and a chunky cashier behind the counter.',
+        },
+        message: {
+          template: '{sender_name} just out-stocked you — ¥' + Math.round(myScore) + ' on Shelf It.',
+          variables: ['sender_name'],
+        },
+      }] },
+    });
+  } catch (e) { /* silent */ }
+}
 // boot restore: local first (instant), then seed from cloud only if no local run exists
 function restoreOnBoot(){
   let local=null; try{ local = JSON.parse(localStorage.getItem(SAVE_KEY)||'null'); }catch(e){}
@@ -2147,6 +2193,7 @@ renderer.domElement.addEventListener('pointerup', e=>{
 function kickoffGame(){
   if(started || !running) return;
   started = true;
+  snapshotPreRunBest();
   spawnTimer=0; elapsed=0; curPeriod=currentPeriod();
   // wipe any attract-mode demo customers so they don't suddenly count toward the player's day
   for(let i=customers.length-1;i>=0;i--){ removeCustomer(i); }
@@ -2516,7 +2563,7 @@ function endOfDay(){
   let hitGoal = null;
   if(!bankrupt && cash >= goalAt(goalIdx)){ hitGoal = goalAt(goalIdx); goalIdx++; branchPending = true; }
   if(cash > hiScore){ hiScore = cash; localStorage.setItem(HISCORE_KEY, hiScore); }
-  persistRun();                                          // platform: save run + submit 历史最高资产 every day-close
+  persistRun({ runEnded: bankrupt });                    // platform: save run + submit 历史最高资产 every day-close; fire score_beat on bankrupt only
 
   const stampEl = document.getElementById('stamp');
   overEl.classList.toggle('bust', bankrupt);
