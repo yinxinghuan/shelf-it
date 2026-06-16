@@ -5,6 +5,9 @@ import * as THREE from 'three';
 import { P, box, darken } from '../lib/prims.js';
 import { MONSTERS } from './monsters.js';     // dedicated horror builders (after-dark crowd)
 import { ARCHETYPES } from './archetypes.js'; // dedicated profession + pop-culture builders (silhouette-driven, like MONSTERS)
+import { VILLAINS } from './villains.js';     // urban "elite" silhouettes: swat / viking — block-party boss models, now also a heavy-build shopper crowd
+import { MECHS } from './mechs.js';           // sci-fi mech silhouettes: combatMech — block-party boss model
+import { MYTHIC } from './mythic.js';         // mythic silhouettes: minotaur — block-party boss model
 
 const EYE = 0x241f1c, FRAME = 0x4a3526;   // facial micro-detail (literal, like animal faces)
 
@@ -209,4 +212,12 @@ export const CHARACTERS = {
   // ── fantasy customers: dedicated horror builders, distinct silhouettes (after-dark unlock).
   //    vampire · werewolf · zombie · ghost · skeleton · mummy — see builders/monsters.js ──
   ...MONSTERS,
+
+  // ── boss / elite roster (block-party L2-L4 bosses) — chunky shoppers with
+  //    weapons + armor that read as "boss" silhouette in 3D. Spawn alongside
+  //    the regular crowd (NOT fantasy-gated) so they're visible early.
+  //    viking · swat · minotaur · combatMech — see villains.js / mythic.js / mechs.js ──
+  ...VILLAINS,
+  ...MYTHIC,
+  ...MECHS,
 };

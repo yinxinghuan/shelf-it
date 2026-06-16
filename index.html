@@ -700,6 +700,14 @@ const ARCH = {
   rapper:      { char:'rapper',      wants:['drink','snack','cold','icecream'] },              // refreshment, no booze
   biker:       { char:'biker',       wants:['liquor','noodle','snack','drink'] },              // gas-and-go regular
   goth:        { char:'goth',        wants:['cold','sundry','liquor','snack'] },               // night-owl staple
+  // boss / elite crowd — block-party boss models repurposed as heavy-build shoppers,
+  // spawned alongside the regular crowd (NOT fantasy-gated) so they're visible early.
+  // Cravings tuned to fit the silhouette: viking = drinking-horn dive-bar haul,
+  // swat = on-shift coffee + fuel, minotaur = primal carnivore, combatMech = energy.
+  viking:      { char:'viking',      wants:['liquor','rawmeat','can','noodle'] },                // raider haul, salted/jerky vibe
+  swat:        { char:'swat',        wants:['coffee','drink','noodle','snack'] },                // on-duty resupply
+  minotaur:    { char:'minotaur',    wants:['rawmeat','rawmeat','veg','liquor'] },               // bullheaded carnivore
+  combatMech:  { char:'combatMech',  wants:['drink','can','cold','noodle'] },                    // synthetic-juice energy run
   // fantasy crowd — identity-bound cravings (mostly their signature good), only spawn once fantasy is unlocked
   vampire:     { char:'vampire',     wants:['blood','blood','blood','liquor'] },
   werewolf:    { char:'werewolf',    wants:['rawmeat','rawmeat','rawmeat','can'] },
@@ -713,11 +721,12 @@ const MONSTER_ARCHES = ['vampire','werewolf','zombie','ghost','skeleton','mummy'
 // `frac` = share of the day; `gap` = seconds between spawns (smaller = busier);
 // `mix` = weighted archetype blend, giving each period a distinct crowd.
 const PERIODS = [
-  // 2026-06-16 bumped: V4 cultural-archetype customers (cop/cowboy/biker/goth/firefighter) given a wider footprint
-  // across all three periods so the new caricatures actually surface in-game instead of being lottery hits.
-  { id:'morning', name:'早高峰', en:'Morning Rush', frac:0.34, gap:2.5, mix:{businessman:3, officeWoman:3, oldman:2, granny:2, student:1, blonde:1, fitWoman:2, chef:1, cop:3, nurse:2, construction:2, firefighter:2, biker:1} },
-  { id:'noon',    name:'午市',   en:'Midday',       frac:0.33, gap:1.5, mix:{businessman:2, officeWoman:2, darkWoman:2, blonde:2, granny:1, oldman:1, student:1, kid:1, chef:2, bigGuy:1, fitWoman:1, delivery:3, construction:2, cop:2, cowboy:2, biker:2, firefighter:2, goth:1} },
-  { id:'school',  name:'放学',   en:'After School', frac:0.33, gap:1.4, mix:{student:4, kid:4, blonde:1, darkWoman:1, officeWoman:1, teen:4, bigGuy:2, firefighter:3, rapper:3, punk:2, biker:3, goth:3, cowboy:2, delivery:2} },
+  // 2026-06-16 added: 4 boss-roster shoppers (viking/swat/minotaur/combatMech) — block-party boss models
+  // appearing as chunky-build customers, NOT fantasy-gated so they show up in normal play.
+  // V4 archetype weights left at their pre-2026-06-16 baseline by user request (the earlier bump was reverted).
+  { id:'morning', name:'早高峰', en:'Morning Rush', frac:0.34, gap:2.5, mix:{businessman:3, officeWoman:3, oldman:2, granny:2, student:1, blonde:1, fitWoman:2, chef:1, cop:2, nurse:2, construction:2, swat:2, combatMech:1} },
+  { id:'noon',    name:'午市',   en:'Midday',       frac:0.33, gap:1.5, mix:{businessman:2, officeWoman:2, darkWoman:2, blonde:2, granny:1, oldman:1, student:1, kid:1, chef:2, bigGuy:1, fitWoman:1, delivery:3, construction:2, cop:1, cowboy:1, biker:1, viking:2, minotaur:2, swat:1, combatMech:1} },
+  { id:'school',  name:'放学',   en:'After School', frac:0.33, gap:1.4, mix:{student:4, kid:4, blonde:1, darkWoman:1, officeWoman:1, teen:4, bigGuy:2, firefighter:2, rapper:3, punk:2, biker:2, goth:2, cowboy:1, delivery:2, viking:2, minotaur:1, combatMech:2} },
 ];
 const periodName = p => (LOCALE==='zh' ? p.name : p.en);   // time-of-day label in the active locale
 
