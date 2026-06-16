@@ -1500,6 +1500,11 @@ function posterTex(variant){
 function posterTexFor(v){ return posterTexCache[v] || (posterTexCache[v] = posterTex(v)); }
 function addPoster(variant, x, y, z, ry, nx, nz){
   const p=texPanel(posterTexFor(variant), 1.12, 1.49); p.position.set(x,y,z); p.rotation.y=ry; store.add(p);
+  // 2026-06-16 — posters are flush against the wall, so any shadow they cast lands
+  // on the same wall behind them and reads as visual noise (especially when the sun
+  // rotates and pushes the poster's box-shape shadow sideways across the wall).
+  // Disable cast — they still receive shadow so the wall ambient occlusion holds.
+  p.castShadow = false;
   wallPanels.push({ mats:p.userData.panelMats, nx, nz });
   posters.push({ mesh:p, face:p.userData.panelMats[1], variant });
 }
