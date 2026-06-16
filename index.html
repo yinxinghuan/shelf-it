@@ -2005,20 +2005,21 @@ const cashNumEl=document.getElementById('cashNum'), dayEl=document.getElementByI
       finGoalFillEl=document.getElementById('finGoalFill');
 let headliner=null;                            // today's主打 category id → more demand + a price premium
 const DAY_LENGTH = 100;                        // 2026-06-16 extended 60→100s — room for 4 periods (morning/noon/school/night) at ~25s each
-const START_CASH = 35;                         // 2026-06-16 partial revert — early game was too easy at 45, pull back to 35 (still gentler than the 30 baseline)
+const START_CASH = 30;                         // 2026-06-16 v3 — back to the 2026-06-09 baseline (35 still felt too cushy on opening)
 const CLERK_WAGE = 18;                          // each clerk's daily wage, settled at end of day
 // ── rent scales with the STORE you run, not the calendar: a sparse new branch pays little, a big floor pays a lot.
 //    (Calendar rent was the death-spiral — opening a fresh branch on day-N inherited day-N's huge rent with day-1 capacity.)
-const RENT_BASE = 18, RENT_PER_UNIT = 10, RENT_LEVEL = 0.18;  // 2026-06-16 partial revert — 9 made early too cushy; 10 sits between baseline 11 and the eased 9
+const RENT_BASE = 18, RENT_PER_UNIT = 11, RENT_LEVEL = 0.18;  // 2026-06-16 v3 — back to baseline 11 (the only ease left is the flattened goal curve below)
 function rentFor(){ return Math.round(RENT_BASE*(1 + RENT_LEVEL*(level-1)) + RENT_PER_UNIT*drawUnits()); }
 // ── endless milestone goals (net-worth tiers) ──────────────────────────────────
-// 2026-06-16 flattened — 1.55× was correct against carryover cash but the late curve
-// became unreachable: 10+ runs and the player still couldn't bank enough to upgrade
-// past goal[5]. Pulled back to 1.42× with matching denominator (0.42) so goalAt(0)
-// stays at 60 (early game unchanged) and late tiers ease meaningfully:
-//   1.42×: goalAt(0)=60, (1)=145, (2)=266, (3)=438, (5)=1030, (7)=2222, (10)≈7137
-//   1.55×: goalAt(0)=60, (1)=153, (2)=297, (3)=521, (5)=1404, (7)=3528, (10)≈13200
-function goalAt(i){ return Math.round(60 * (Math.pow(1.42, (i|0)+1) - 1) / 0.42); }
+// 2026-06-16 v3 midpoint — 1.42 made the whole game feel too easy because cash
+// growth outpaced goal growth (the same trap the comment for 1.55 originally
+// flagged). Pulled back to 1.50× with matching denominator (0.50) — keeps
+// goalAt(0)=60 and slows the cash-vs-goal race to a near tie:
+//   1.50×: goalAt(0)=60, (1)=150, (2)=285, (3)=488, (5)=1247, (7)=2896, (10)≈10380
+//   1.42×: (5)=1030, (7)=2222, (10)≈7137   (was too easy)
+//   1.55×: (5)=1404, (7)=3528, (10)≈13200  (was too hard late)
+function goalAt(i){ return Math.round(60 * (Math.pow(1.50, (i|0)+1) - 1) / 0.50); }
 const BRANCH_EVERY = 6;   // every Nth upgrade the card also offers an OPTIONAL new branch
 const FANTASY_AT   = 1;   // from this milestone on, the card offers the one-time "after dark" fantasy unlock
 let bankrupt=false;
@@ -2027,7 +2028,7 @@ function drawUnits(){ return (owned.shelf||0)+(owned.fridge||0)+(owned.fresh||0)
 function stockUnits(){ return (owned.shelf||0)+(owned.fridge||0)+(owned.fresh||0); }                                   // the stockable fixtures
 function spawnGapMul(){ return Math.max(0.5, Math.pow(0.96, drawUnits())); }   // 招客: a fuller floor draws a faster crowd
 function custCap(){ return Math.min(14, 4 + Math.round(drawUnits()*0.5)); }    // 招客: more fixtures → more shoppers at once
-function priceMul(){ return varietyMult() * (1 + 0.07*marginLvl); }            // 加价: variety synergy × the (endless) profit-margin upgrade (2026-06-16 partial revert — 0.08 was too generous early; 0.07 is a small bump over the 0.06 baseline)
+function priceMul(){ return varietyMult() * (1 + 0.06*marginLvl); }            // 加价: variety synergy × the (endless) profit-margin upgrade (2026-06-16 v3 — back to 0.06 baseline; 0.07 still snowballed cash too fast)
 function branchMult(){ return 1 + 0.25*branches; }                             // each optional new branch lifts ALL takings (shelf + coffee + rack)
 function restockSecs(){ return Math.max(0.5, RESTOCK_TIME*Math.pow(0.94, stockUnits())); }  // 理货: more aisles → tighter restock throughput
 // ── equipment economy (#61): each unlocked fixture is a real earner. Stacking the same
