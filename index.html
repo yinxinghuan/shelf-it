@@ -2006,10 +2006,13 @@ const cashNumEl=document.getElementById('cashNum'), dayEl=document.getElementByI
 let headliner=null;                            // today's主打 category id → more demand + a price premium
 const DAY_LENGTH = 100;                        // 2026-06-16 extended 60→100s — room for 4 periods (morning/noon/school/night) at ~25s each
 const START_CASH = 30;                         // 2026-06-16 v3 — back to the 2026-06-09 baseline (35 still felt too cushy on opening)
-const CLERK_WAGE = 18;                          // each clerk's daily wage, settled at end of day
+const CLERK_WAGE = 27;                          // 2026-06-16 v4 — scaled +50% to match the DAY_LENGTH 60→100s extension; day grew 67% so wages need to follow (they're per-day, not per-second)
 // ── rent scales with the STORE you run, not the calendar: a sparse new branch pays little, a big floor pays a lot.
 //    (Calendar rent was the death-spiral — opening a fresh branch on day-N inherited day-N's huge rent with day-1 capacity.)
-const RENT_BASE = 18, RENT_PER_UNIT = 11, RENT_LEVEL = 0.18;  // 2026-06-16 v3 — back to baseline 11 (the only ease left is the flattened goal curve below)
+// 2026-06-16 v4 — RENT_BASE 18→27 and PER_UNIT 11→16 (both +50%) to track
+// the new 100s shift. Without this, revenue scaled with the longer day but
+// fixed costs didn't, snowballing the day-2 net way past the milestone goal.
+const RENT_BASE = 27, RENT_PER_UNIT = 16, RENT_LEVEL = 0.18;
 function rentFor(){ return Math.round(RENT_BASE*(1 + RENT_LEVEL*(level-1)) + RENT_PER_UNIT*drawUnits()); }
 // ── endless milestone goals (net-worth tiers) ──────────────────────────────────
 // 2026-06-16 v3 midpoint — 1.42 made the whole game feel too easy because cash
