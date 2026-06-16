@@ -713,9 +713,11 @@ const MONSTER_ARCHES = ['vampire','werewolf','zombie','ghost','skeleton','mummy'
 // `frac` = share of the day; `gap` = seconds between spawns (smaller = busier);
 // `mix` = weighted archetype blend, giving each period a distinct crowd.
 const PERIODS = [
-  { id:'morning', name:'早高峰', en:'Morning Rush', frac:0.34, gap:2.5, mix:{businessman:3, officeWoman:3, oldman:2, granny:2, student:1, blonde:1, fitWoman:2, chef:1, cop:2, nurse:2, construction:2} },
-  { id:'noon',    name:'午市',   en:'Midday',       frac:0.33, gap:1.5, mix:{businessman:2, officeWoman:2, darkWoman:2, blonde:2, granny:1, oldman:1, student:1, kid:1, chef:2, bigGuy:1, fitWoman:1, delivery:3, construction:2, cop:1, cowboy:1, biker:1} },
-  { id:'school',  name:'放学',   en:'After School', frac:0.33, gap:1.4, mix:{student:4, kid:4, blonde:1, darkWoman:1, officeWoman:1, teen:4, bigGuy:2, firefighter:2, rapper:3, punk:2, biker:2, goth:2, cowboy:1, delivery:2} },
+  // 2026-06-16 bumped: V4 cultural-archetype customers (cop/cowboy/biker/goth/firefighter) given a wider footprint
+  // across all three periods so the new caricatures actually surface in-game instead of being lottery hits.
+  { id:'morning', name:'早高峰', en:'Morning Rush', frac:0.34, gap:2.5, mix:{businessman:3, officeWoman:3, oldman:2, granny:2, student:1, blonde:1, fitWoman:2, chef:1, cop:3, nurse:2, construction:2, firefighter:2, biker:1} },
+  { id:'noon',    name:'午市',   en:'Midday',       frac:0.33, gap:1.5, mix:{businessman:2, officeWoman:2, darkWoman:2, blonde:2, granny:1, oldman:1, student:1, kid:1, chef:2, bigGuy:1, fitWoman:1, delivery:3, construction:2, cop:2, cowboy:2, biker:2, firefighter:2, goth:1} },
+  { id:'school',  name:'放学',   en:'After School', frac:0.33, gap:1.4, mix:{student:4, kid:4, blonde:1, darkWoman:1, officeWoman:1, teen:4, bigGuy:2, firefighter:3, rapper:3, punk:2, biker:3, goth:3, cowboy:2, delivery:2} },
 ];
 const periodName = p => (LOCALE==='zh' ? p.name : p.en);   // time-of-day label in the active locale
 
@@ -1934,11 +1936,11 @@ const cashNumEl=document.getElementById('cashNum'), dayEl=document.getElementByI
       finGoalFillEl=document.getElementById('finGoalFill');
 let headliner=null;                            // today's主打 category id → more demand + a price premium
 const DAY_LENGTH = 60;                         // one shift = 60 seconds; structured around the day rhythm
-const START_CASH = 30;                         // tight opening — day 1 has to earn its way past goal[0]=60, not arrive there for free
+const START_CASH = 45;                         // 2026-06-16 eased — opening cash bumped from 30 so day-1 has buffer for a hire + first restock without coin-flipping the goal hit
 const CLERK_WAGE = 18;                          // each clerk's daily wage, settled at end of day
 // ── rent scales with the STORE you run, not the calendar: a sparse new branch pays little, a big floor pays a lot.
 //    (Calendar rent was the death-spiral — opening a fresh branch on day-N inherited day-N's huge rent with day-1 capacity.)
-const RENT_BASE = 18, RENT_PER_UNIT = 11, RENT_LEVEL = 0.18;  // base + per-fixture floor cost + a small per-branch prestige premium — each new fixture has to earn its rent back
+const RENT_BASE = 18, RENT_PER_UNIT = 9, RENT_LEVEL = 0.18;   // 2026-06-16 eased — PER_UNIT 11→9, fixture rent floor relaxed one notch (was the most aggressive lever from the 2026-06-09 tightening pass)
 function rentFor(){ return Math.round(RENT_BASE*(1 + RENT_LEVEL*(level-1)) + RENT_PER_UNIT*drawUnits()); }
 // ── endless milestone goals (net-worth tiers) ──────────────────────────────────
 // Steeper 1.55× growth so later tiers really stretch the store's earnings instead of being cleared
@@ -1954,7 +1956,7 @@ function drawUnits(){ return (owned.shelf||0)+(owned.fridge||0)+(owned.fresh||0)
 function stockUnits(){ return (owned.shelf||0)+(owned.fridge||0)+(owned.fresh||0); }                                   // the stockable fixtures
 function spawnGapMul(){ return Math.max(0.5, Math.pow(0.96, drawUnits())); }   // 招客: a fuller floor draws a faster crowd
 function custCap(){ return Math.min(14, 4 + Math.round(drawUnits()*0.5)); }    // 招客: more fixtures → more shoppers at once
-function priceMul(){ return varietyMult() * (1 + 0.06*marginLvl); }            // 加价: variety synergy × the (endless) profit-margin upgrade
+function priceMul(){ return varietyMult() * (1 + 0.08*marginLvl); }            // 加价: variety synergy × the (endless) profit-margin upgrade (2026-06-16 eased — slope 0.06→0.08, each margin upgrade now pays ~33% more)
 function branchMult(){ return 1 + 0.25*branches; }                             // each optional new branch lifts ALL takings (shelf + coffee + rack)
 function restockSecs(){ return Math.max(0.5, RESTOCK_TIME*Math.pow(0.94, stockUnits())); }  // 理货: more aisles → tighter restock throughput
 // ── equipment economy (#61): each unlocked fixture is a real earner. Stacking the same
