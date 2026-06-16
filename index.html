@@ -550,6 +550,13 @@ const LIGHTS_DAY = {
   keyI:    keyLight.intensity,
   keyCol:  keyLight.color.clone(),
   hemiI:   hemiLight.intensity,
+  // Sun-arc anchor — original key.position (6.5, 16, 8) decomposed into
+  // azimuth + horizontal radius + height. The per-frame sun update sweeps
+  // azimuth ±90° around this baseline across the 100s day so shadows
+  // visibly rotate (morning long → noon short → evening long).
+  sunAz:   Math.atan2(keyLight.position.z, keyLight.position.x),
+  sunR:    Math.hypot(keyLight.position.x, keyLight.position.z),
+  sunH:    keyLight.position.y,
 };
 const LIGHTS_NIGHT = {
   keyI:    LIGHTS_DAY.keyI  * 0.55,        // main light dims to ~55%
@@ -565,6 +572,23 @@ function setLightingNightT(nightT){
   keyLight.intensity  = L(LIGHTS_DAY.keyI,  LIGHTS_NIGHT.keyI);
   keyLight.color.copy(LIGHTS_DAY.keyCol).lerp(LIGHTS_NIGHT.keyCol, t);
   hemiLight.intensity = L(LIGHTS_DAY.hemiI, LIGHTS_NIGHT.hemiI);
+}
+
+// Sun-arc — moves the key DirectionalLight on a half-circle around the
+// store as the shift progresses, so character shadows visibly rotate
+// from morning (long, pointing one way) → noon (short, almost under
+// the feet) → evening (long, pointing the other way). Called each
+// frame from tick() while running.
+function updateSunPosition(){
+  if(!started) return;  // before the first customer walks in, hold daytime pose
+  const f = Math.max(0, Math.min(1, elapsed / DAY_LENGTH));
+  // Sweep ±90° around the baseline azimuth across the day.
+  const az = LIGHTS_DAY.sunAz + (f - 0.5) * Math.PI;
+  // Elevation lifts at noon, sinks at start/end. Multiplier 0.55 (low) → 1.0 (noon).
+  const elev = 0.55 + 0.45 * Math.sin(Math.PI * f);
+  const h = LIGHTS_DAY.sunH * elev;
+  const r = LIGHTS_DAY.sunR / elev;   // shadow stretches longer when sun is lower
+  keyLight.position.set(Math.cos(az) * r, h, Math.sin(az) * r);
 }
 // camera ROTATES around Y only (turntable) — lock the polar angle so the iso tilt never changes.
 controls.enableRotate = true; controls.enablePan = false; controls.enableZoom = false;
@@ -2758,6 +2782,7 @@ function tick(){
   const targetNight = (periodId === 'night') ? 1 : 0;
   nightT += (targetNight - nightT) * Math.min(1, dt * 1.5);
   setLightingNightT(nightT);
+  updateSunPosition();    // rotate the sun across the day so shadows track
 
   updateClerks(dt);                                  // clerks restock; also rebuilds avoidAgents = customers + clerks
 
