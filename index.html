@@ -542,34 +542,29 @@ document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.g
 const stage = createStage(document.getElementById('c'),
   { viewSize:8.2, camPos:[-15,15,15], target:[0.6,0.7,-0.6], floorOpacity:0.26, bg:0x000000 });
 const { scene, camera, composer, controls, renderer, key:keyLight, hemi:hemiLight, fill:fillLight, rim:rimLight } = stage;
-// Cache the baseline (daytime) light intensities + scene bg so we can dim
-// during the 'night' period and restore on the next morning.
+// Night-mode lighting — 2026-06-16 v2 per user: KEEP the bg color
+// unchanged (the cream bg → grey lerp read as "everything is grey",
+// not "it got dark out"). Only the KEY light dims + shifts cool-blue;
+// hemi takes a small dim for atmosphere. fill/rim unchanged.
 const LIGHTS_DAY = {
-  key:   keyLight.intensity,
-  hemi:  hemiLight.intensity,
-  fill:  fillLight.intensity,
-  rim:   rimLight.intensity,
-  bg:    scene.background.clone(),
+  keyI:    keyLight.intensity,
+  keyCol:  keyLight.color.clone(),
+  hemiI:   hemiLight.intensity,
 };
-// Night = ~50% of daytime brightness + a cool desaturated blue tint.
-// Lerped each frame between day and night targets so the transition reads
-// as dusk → twilight → recover, not a hard flip.
 const LIGHTS_NIGHT = {
-  key:   LIGHTS_DAY.key  * 0.42,
-  hemi:  LIGHTS_DAY.hemi * 0.45,
-  fill:  LIGHTS_DAY.fill * 0.70,
-  rim:   LIGHTS_DAY.rim  * 0.55,
-  bg:    new THREE.Color(0x2a2e3a),   // deep dusk blue-grey
+  keyI:    LIGHTS_DAY.keyI  * 0.55,        // main light dims to ~55%
+  keyCol:  new THREE.Color(0x7da4d8),      // cool moonlight blue
+  hemiI:   LIGHTS_DAY.hemiI * 0.78,        // slight ambient drop, still readable
 };
 function setLightingNightT(nightT){
-  // nightT: 0 = full day, 1 = full night. Lerps every channel.
+  // nightT: 0 = full day, 1 = full night. Lerps key intensity/color + hemi
+  // intensity only — background, fill, rim left at their daytime values
+  // so the store keeps its warm bg while the SUN goes cool + dim.
   const t = Math.max(0, Math.min(1, nightT));
   const L = (a, b) => a + (b - a) * t;
-  keyLight.intensity  = L(LIGHTS_DAY.key,  LIGHTS_NIGHT.key);
-  hemiLight.intensity = L(LIGHTS_DAY.hemi, LIGHTS_NIGHT.hemi);
-  fillLight.intensity = L(LIGHTS_DAY.fill, LIGHTS_NIGHT.fill);
-  rimLight.intensity  = L(LIGHTS_DAY.rim,  LIGHTS_NIGHT.rim);
-  scene.background.copy(LIGHTS_DAY.bg).lerp(LIGHTS_NIGHT.bg, t);
+  keyLight.intensity  = L(LIGHTS_DAY.keyI,  LIGHTS_NIGHT.keyI);
+  keyLight.color.copy(LIGHTS_DAY.keyCol).lerp(LIGHTS_NIGHT.keyCol, t);
+  hemiLight.intensity = L(LIGHTS_DAY.hemiI, LIGHTS_NIGHT.hemiI);
 }
 // camera ROTATES around Y only (turntable) — lock the polar angle so the iso tilt never changes.
 controls.enableRotate = true; controls.enablePan = false; controls.enableZoom = false;
