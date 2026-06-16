@@ -541,7 +541,36 @@ document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.g
 // ── stage (locked premium look; we drive our own game loop) ──
 const stage = createStage(document.getElementById('c'),
   { viewSize:8.2, camPos:[-15,15,15], target:[0.6,0.7,-0.6], floorOpacity:0.26, bg:0x000000 });
-const { scene, camera, composer, controls, renderer } = stage;
+const { scene, camera, composer, controls, renderer, key:keyLight, hemi:hemiLight, fill:fillLight, rim:rimLight } = stage;
+// Cache the baseline (daytime) light intensities + scene bg so we can dim
+// during the 'night' period and restore on the next morning.
+const LIGHTS_DAY = {
+  key:   keyLight.intensity,
+  hemi:  hemiLight.intensity,
+  fill:  fillLight.intensity,
+  rim:   rimLight.intensity,
+  bg:    scene.background.clone(),
+};
+// Night = ~50% of daytime brightness + a cool desaturated blue tint.
+// Lerped each frame between day and night targets so the transition reads
+// as dusk → twilight → recover, not a hard flip.
+const LIGHTS_NIGHT = {
+  key:   LIGHTS_DAY.key  * 0.42,
+  hemi:  LIGHTS_DAY.hemi * 0.45,
+  fill:  LIGHTS_DAY.fill * 0.70,
+  rim:   LIGHTS_DAY.rim  * 0.55,
+  bg:    new THREE.Color(0x2a2e3a),   // deep dusk blue-grey
+};
+function setLightingNightT(nightT){
+  // nightT: 0 = full day, 1 = full night. Lerps every channel.
+  const t = Math.max(0, Math.min(1, nightT));
+  const L = (a, b) => a + (b - a) * t;
+  keyLight.intensity  = L(LIGHTS_DAY.key,  LIGHTS_NIGHT.key);
+  hemiLight.intensity = L(LIGHTS_DAY.hemi, LIGHTS_NIGHT.hemi);
+  fillLight.intensity = L(LIGHTS_DAY.fill, LIGHTS_NIGHT.fill);
+  rimLight.intensity  = L(LIGHTS_DAY.rim,  LIGHTS_NIGHT.rim);
+  scene.background.copy(LIGHTS_DAY.bg).lerp(LIGHTS_NIGHT.bg, t);
+}
 // camera ROTATES around Y only (turntable) — lock the polar angle so the iso tilt never changes.
 controls.enableRotate = true; controls.enablePan = false; controls.enableZoom = false;
 const ISO_POLAR = Math.acos(15/Math.hypot(15,15,15));           // == the camPos[15,15,15] tilt (~0.955 rad)
@@ -645,6 +674,9 @@ const CATS = [
   { id:'sundry',   name:'日杂',   en:'Sundries',  col:P.green,    kind:3, cost:3, price:10 },   // steady mid margin
   { id:'coffee',   name:'咖啡',   en:'Coffee',    col:P.woodD,    kind:1, cost:4, price:13 },   // high margin (white-collar craving)
   { id:'liquor',   name:'酒水',   en:'Liquor',    col:P.purple,   kind:0, cost:6, price:19 },   // premium: highest margin, narrow crowd
+  // 2026-06-16 boss-roster signature items — adjacent to existing dry-goods, not fantasy-gated
+  { id:'mead',     name:'蜂蜜酒', en:'Mead',      col:P.amber,    kind:0, cost:5, price:17 },   // Viking + Minotaur drinking-horn pour; mid-premium
+  { id:'protein',  name:'蛋白棒', en:'Protein Bar', col:P.steel,  kind:3, cost:4, price:13 },   // SWAT + Combat Mech + Construction work-fuel
   // 生鲜 — produce bins (high margin)
   { id:'fruit',    name:'水果',   en:'Fruit',     col:P.apple,    kind:4, cost:5, price:16 },
   { id:'veg',      name:'蔬菜',   en:'Veg',       col:P.leafL,    kind:7, cost:4, price:14 },
@@ -661,7 +693,7 @@ const CATS = [
 const CAT = Object.fromEntries(CATS.map(c=>[c.id,c]));
 const catName = c => (LOCALE==='zh' ? c.name : c.en);   // category label in the active locale
 // each fixture type only accepts (and customers only buy from) the categories in its family
-const FAM_AMBIENT = ['biscuit','snack','can','noodle','sundry','coffee','liquor'];   // dry-goods gondolas: islands + wall runs
+const FAM_AMBIENT = ['biscuit','snack','can','noodle','sundry','coffee','liquor','mead','protein'];   // dry-goods gondolas: islands + wall runs
 const FAM_FRESH   = ['fruit','veg'];                      // open produce bins
 const FAM_FROZEN  = ['drink','cold','icecream','dairy'];  // glass-door coolers + chest freezer
 const FAM_FANTASY = ['blood','rawmeat','brains'];          // unlocked late; offered on ambient + frozen fixtures
@@ -689,25 +721,25 @@ const ARCH = {
   chef:        { char:'chef',        wants:['veg','fruit','can','noodle','liquor'] },
   bigGuy:      { char:'bigGuy',      wants:['liquor','can','snack','drink','noodle'] },
   // profession crowd — uniformed regulars, on-shift cravings
-  cop:         { char:'cop',         wants:['coffee','noodle','snack','drink'] },              // patrol coffee + a quick bite
+  cop:         { char:'cop',         wants:['coffee','noodle','snack','drink','protein'] },   // patrol coffee + a quick bite; protein for the on-foot beat
   nurse:       { char:'nurse',       wants:['coffee','dairy','fruit','sundry'] },              // 24-hour shift restock
-  firefighter: { char:'firefighter', wants:['drink','cold','snack','noodle'] },                // hydration break
-  construction:{ char:'construction',wants:['drink','cold','sundry','snack','noodle'] },       // jobsite supply run
+  firefighter: { char:'firefighter', wants:['drink','cold','snack','noodle','protein'] },     // hydration break + station-house protein bar
+  construction:{ char:'construction',wants:['drink','cold','sundry','snack','noodle','protein'] },  // jobsite supply run
   delivery:    { char:'delivery',    wants:['drink','snack','cold','noodle'] },                // gig-worker between drops
   // pop-culture crowd — alt-register cravings, after-dark friendly without being fantasy/horror
-  cowboy:      { char:'cowboy',      wants:['liquor','can','snack','noodle'] },                // dive-bar adjacent
+  cowboy:      { char:'cowboy',      wants:['liquor','mead','can','snack','noodle'] },         // dive-bar adjacent — mead is a saloon staple
   punk:        { char:'punk',        wants:['liquor','cold','snack','drink'] },                // basement-show crowd
   rapper:      { char:'rapper',      wants:['drink','snack','cold','icecream'] },              // refreshment, no booze
-  biker:       { char:'biker',       wants:['liquor','noodle','snack','drink'] },              // gas-and-go regular
+  biker:       { char:'biker',       wants:['liquor','mead','noodle','snack','drink'] },       // gas-and-go regular — mead alongside the usual
   goth:        { char:'goth',        wants:['cold','sundry','liquor','snack'] },               // night-owl staple
   // boss / elite crowd — block-party boss models repurposed as heavy-build shoppers,
   // spawned alongside the regular crowd (NOT fantasy-gated) so they're visible early.
-  // Cravings tuned to fit the silhouette: viking = drinking-horn dive-bar haul,
-  // swat = on-shift coffee + fuel, minotaur = primal carnivore, combatMech = energy.
-  viking:      { char:'viking',      wants:['liquor','rawmeat','can','noodle'] },                // raider haul, salted/jerky vibe
-  swat:        { char:'swat',        wants:['coffee','drink','noodle','snack'] },                // on-duty resupply
-  minotaur:    { char:'minotaur',    wants:['rawmeat','rawmeat','veg','liquor'] },               // bullheaded carnivore
-  combatMech:  { char:'combatMech',  wants:['drink','can','cold','noodle'] },                    // synthetic-juice energy run
+  // Each one has a SIGNATURE craving (mead for viking/minotaur, protein for swat/mech)
+  // so stocking the new shelf-items pays off when the boss crowd shows up.
+  viking:      { char:'viking',      wants:['mead','mead','liquor','rawmeat','can'] },           // drinking-horn raider — mead is the signature pour
+  swat:        { char:'swat',        wants:['protein','coffee','drink','noodle','snack'] },      // on-duty resupply — protein bar is the tactical fuel
+  minotaur:    { char:'minotaur',    wants:['rawmeat','rawmeat','mead','veg','liquor'] },        // bullheaded carnivore, also nurses a horn of mead
+  combatMech:  { char:'combatMech',  wants:['protein','protein','drink','can','cold'] },         // synthetic-juice energy run — protein-bar refuel
   // fantasy crowd — identity-bound cravings (mostly their signature good), only spawn once fantasy is unlocked
   vampire:     { char:'vampire',     wants:['blood','blood','blood','liquor'] },
   werewolf:    { char:'werewolf',    wants:['rawmeat','rawmeat','rawmeat','can'] },
@@ -724,9 +756,13 @@ const PERIODS = [
   // 2026-06-16 added: 4 boss-roster shoppers (viking/swat/minotaur/combatMech) — block-party boss models
   // appearing as chunky-build customers, NOT fantasy-gated so they show up in normal play.
   // V4 archetype weights left at their pre-2026-06-16 baseline by user request (the earlier bump was reverted).
-  { id:'morning', name:'早高峰', en:'Morning Rush', frac:0.34, gap:2.5, mix:{businessman:3, officeWoman:3, oldman:2, granny:2, student:1, blonde:1, fitWoman:2, chef:1, cop:2, nurse:2, construction:2, swat:2, combatMech:1} },
-  { id:'noon',    name:'午市',   en:'Midday',       frac:0.33, gap:1.5, mix:{businessman:2, officeWoman:2, darkWoman:2, blonde:2, granny:1, oldman:1, student:1, kid:1, chef:2, bigGuy:1, fitWoman:1, delivery:3, construction:2, cop:1, cowboy:1, biker:1, viking:2, minotaur:2, swat:1, combatMech:1} },
-  { id:'school',  name:'放学',   en:'After School', frac:0.33, gap:1.4, mix:{student:4, kid:4, blonde:1, darkWoman:1, officeWoman:1, teen:4, bigGuy:2, firefighter:2, rapper:3, punk:2, biker:2, goth:2, cowboy:1, delivery:2, viking:2, minotaur:1, combatMech:2} },
+  // 2026-06-16 (later): added 4th period 'night' — late-shift crowd, lights dim down,
+  // store leans into the goth/biker/punk/cowboy/viking after-dark register. Fractions
+  // rebalanced 0.34/0.33/0.33 → 0.25/0.25/0.25/0.25 so the 100s day splits evenly.
+  { id:'morning', name:'早高峰', en:'Morning Rush', frac:0.25, gap:2.5, mix:{businessman:3, officeWoman:3, oldman:2, granny:2, student:1, blonde:1, fitWoman:2, chef:1, cop:2, nurse:2, construction:2, swat:2, combatMech:1} },
+  { id:'noon',    name:'午市',   en:'Midday',       frac:0.25, gap:1.5, mix:{businessman:2, officeWoman:2, darkWoman:2, blonde:2, granny:1, oldman:1, student:1, kid:1, chef:2, bigGuy:1, fitWoman:1, delivery:3, construction:2, cop:1, cowboy:1, biker:1, viking:2, minotaur:2, swat:1, combatMech:1} },
+  { id:'school',  name:'放学',   en:'After School', frac:0.25, gap:1.4, mix:{student:4, kid:4, blonde:1, darkWoman:1, officeWoman:1, teen:4, bigGuy:2, firefighter:2, rapper:3, punk:2, biker:2, goth:2, cowboy:1, delivery:2, viking:2, minotaur:1, combatMech:2} },
+  { id:'night',   name:'深夜',   en:'Night Shift',  frac:0.25, gap:1.8, mix:{goth:4, biker:4, punk:4, cowboy:3, rapper:2, viking:3, minotaur:2, delivery:2, darkWoman:1, bigGuy:2, oldman:1, swat:1, firefighter:1, construction:1} },
 ];
 const periodName = p => (LOCALE==='zh' ? p.name : p.en);   // time-of-day label in the active locale
 
@@ -1944,19 +1980,21 @@ const cashNumEl=document.getElementById('cashNum'), dayEl=document.getElementByI
       finGoalTxtEl=document.getElementById('finGoalTxt'), finGoalNowEl=document.getElementById('finGoalNow'),
       finGoalFillEl=document.getElementById('finGoalFill');
 let headliner=null;                            // today's主打 category id → more demand + a price premium
-const DAY_LENGTH = 60;                         // one shift = 60 seconds; structured around the day rhythm
-const START_CASH = 45;                         // 2026-06-16 eased — opening cash bumped from 30 so day-1 has buffer for a hire + first restock without coin-flipping the goal hit
+const DAY_LENGTH = 100;                        // 2026-06-16 extended 60→100s — room for 4 periods (morning/noon/school/night) at ~25s each
+const START_CASH = 35;                         // 2026-06-16 partial revert — early game was too easy at 45, pull back to 35 (still gentler than the 30 baseline)
 const CLERK_WAGE = 18;                          // each clerk's daily wage, settled at end of day
 // ── rent scales with the STORE you run, not the calendar: a sparse new branch pays little, a big floor pays a lot.
 //    (Calendar rent was the death-spiral — opening a fresh branch on day-N inherited day-N's huge rent with day-1 capacity.)
-const RENT_BASE = 18, RENT_PER_UNIT = 9, RENT_LEVEL = 0.18;   // 2026-06-16 eased — PER_UNIT 11→9, fixture rent floor relaxed one notch (was the most aggressive lever from the 2026-06-09 tightening pass)
+const RENT_BASE = 18, RENT_PER_UNIT = 10, RENT_LEVEL = 0.18;  // 2026-06-16 partial revert — 9 made early too cushy; 10 sits between baseline 11 and the eased 9
 function rentFor(){ return Math.round(RENT_BASE*(1 + RENT_LEVEL*(level-1)) + RENT_PER_UNIT*drawUnits()); }
 // ── endless milestone goals (net-worth tiers) ──────────────────────────────────
-// Steeper 1.55× growth so later tiers really stretch the store's earnings instead of being cleared
-// by carryover cash alone (1.42 still let cash-growth outpace goal-growth → "cash already past next goal
-// at start of every day"). Geometric sum keeps the smooth ramp; no cap → always one more upgrade ahead.
-// goalAt(0)=60, (1)=153, (2)=297, (3)=521, (4)=867, (5)=1404, (7)=3528, (10)≈13200.
-function goalAt(i){ return Math.round(60 * (Math.pow(1.55, (i|0)+1) - 1) / 0.55); }
+// 2026-06-16 flattened — 1.55× was correct against carryover cash but the late curve
+// became unreachable: 10+ runs and the player still couldn't bank enough to upgrade
+// past goal[5]. Pulled back to 1.42× with matching denominator (0.42) so goalAt(0)
+// stays at 60 (early game unchanged) and late tiers ease meaningfully:
+//   1.42×: goalAt(0)=60, (1)=145, (2)=266, (3)=438, (5)=1030, (7)=2222, (10)≈7137
+//   1.55×: goalAt(0)=60, (1)=153, (2)=297, (3)=521, (5)=1404, (7)=3528, (10)≈13200
+function goalAt(i){ return Math.round(60 * (Math.pow(1.42, (i|0)+1) - 1) / 0.42); }
 const BRANCH_EVERY = 6;   // every Nth upgrade the card also offers an OPTIONAL new branch
 const FANTASY_AT   = 1;   // from this milestone on, the card offers the one-time "after dark" fantasy unlock
 let bankrupt=false;
@@ -1965,7 +2003,7 @@ function drawUnits(){ return (owned.shelf||0)+(owned.fridge||0)+(owned.fresh||0)
 function stockUnits(){ return (owned.shelf||0)+(owned.fridge||0)+(owned.fresh||0); }                                   // the stockable fixtures
 function spawnGapMul(){ return Math.max(0.5, Math.pow(0.96, drawUnits())); }   // 招客: a fuller floor draws a faster crowd
 function custCap(){ return Math.min(14, 4 + Math.round(drawUnits()*0.5)); }    // 招客: more fixtures → more shoppers at once
-function priceMul(){ return varietyMult() * (1 + 0.08*marginLvl); }            // 加价: variety synergy × the (endless) profit-margin upgrade (2026-06-16 eased — slope 0.06→0.08, each margin upgrade now pays ~33% more)
+function priceMul(){ return varietyMult() * (1 + 0.07*marginLvl); }            // 加价: variety synergy × the (endless) profit-margin upgrade (2026-06-16 partial revert — 0.08 was too generous early; 0.07 is a small bump over the 0.06 baseline)
 function branchMult(){ return 1 + 0.25*branches; }                             // each optional new branch lifts ALL takings (shelf + coffee + rack)
 function restockSecs(){ return Math.max(0.5, RESTOCK_TIME*Math.pow(0.94, stockUnits())); }  // 理货: more aisles → tighter restock throughput
 // ── equipment economy (#61): each unlocked fixture is a real earner. Stacking the same
@@ -1987,7 +2025,8 @@ let cash=START_CASH, displayedCash=START_CASH, day=1, goalIdx=0, level=1, margin
     custDone=0, custLost=0, tidyHits=0,
     dayRevenue=0, dayRestock=0, dayHire=0,        // per-day tallies: takings / cost-of-goods-sold / mid-day hire fees
     dayCoffee=0, dayRack=0,                        // per-day till attach revenue, broken out for the books panel
-    curPeriod=null;                              // active time-of-day period (drives crowd + HUD label)
+    curPeriod=null,                              // active time-of-day period (drives crowd + HUD label)
+    nightT=0;                                    // 0..1 lighting blend; 1 = full night dim (set per-frame from currentPeriod)
 const HISCORE_KEY='shelfit_hi'; let hiScore=+(localStorage.getItem(HISCORE_KEY)||0);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -2716,6 +2755,14 @@ function tick(){
     spawnTimer+=dt;
     if(spawnTimer>=2.4 && customers.length<2){ spawnTimer=0; spawnCustomer(true); }
   }
+
+  // Night lighting ramp — fades over ~0.7s when entering/exiting 'night'.
+  // 0 = full day brightness, 1 = dim dusk. Driven by currentPeriod().id;
+  // before a shift starts or after it ends, the store reverts to daytime.
+  const periodId = (running && started) ? currentPeriod().id : 'morning';
+  const targetNight = (periodId === 'night') ? 1 : 0;
+  nightT += (targetNight - nightT) * Math.min(1, dt * 1.5);
+  setLightingNightT(nightT);
 
   updateClerks(dt);                                  // clerks restock; also rebuilds avoidAgents = customers + clerks
 
