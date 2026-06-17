@@ -2012,28 +2012,27 @@ const cashNumEl=document.getElementById('cashNum'), dayEl=document.getElementByI
 let headliner=null;                            // today's主打 category id → more demand + a price premium
 const DAY_LENGTH = 100;                        // 2026-06-16 extended 60→100s — room for 4 periods (morning/noon/school/night) at ~25s each
 const START_CASH = 30;                         // 2026-06-16 v3 — back to the 2026-06-09 baseline (35 still felt too cushy on opening)
-const CLERK_WAGE = 27;                          // 2026-06-16 v4 — scaled +50% to match the DAY_LENGTH 60→100s extension; day grew 67% so wages need to follow (they're per-day, not per-second)
+const CLERK_WAGE = 35;                          // 2026-06-16 v7 — +30% so labor is a meaningful pinch even in opening
 // ── rent scales with the STORE you run, not the calendar: a sparse new branch pays little, a big floor pays a lot.
 //    (Calendar rent was the death-spiral — opening a fresh branch on day-N inherited day-N's huge rent with day-1 capacity.)
-// 2026-06-16 v4 — RENT_BASE 18→27 and PER_UNIT 11→16 (both +50%) to track
-// the new 100s shift. Without this, revenue scaled with the longer day but
-// fixed costs didn't, snowballing the day-2 net way past the milestone goal.
-const RENT_BASE = 27, RENT_PER_UNIT = 16, RENT_LEVEL = 0.18;
+// 2026-06-16 v7 — opening costs were the real lever. Even at v6's 27/16/27,
+// 5 starting fixtures + 100s day still produced 500-1500 net/day before any
+// upgrades, so every milestone felt cleared "for free". Push base rent up
+// hard so day-1 net drops to a meaningful chunk of goal[0]=300, not 5×.
+//   RENT_BASE 27 → 80    (×3.0)  — opening "always-on" rent
+//   PER_UNIT  16 → 22    (+38%)  — each fixture pulls more weight as you grow
+const RENT_BASE = 80, RENT_PER_UNIT = 22, RENT_LEVEL = 0.18;
 function rentFor(){ return Math.round(RENT_BASE*(1 + RENT_LEVEL*(level-1)) + RENT_PER_UNIT*drawUnits()); }
 // ── endless milestone goals (net-worth tiers) ──────────────────────────────────
-// 2026-06-16 v6 — re-anchor for measured-profit reality. User test data: daily
-// net is 500-1500 even at opening with linear-margin upgrades; the 60 base
-// + 1.50 ratio meant goal[0..9] were trivially cleared in 1-2 days each
-// ("前 10 关相当于白给"). Two-axis fix:
-//   * Base 60 → 200 (matches a fraction of an opening day's net, so goal[0]
-//     actually requires *some* play, not "open the doors and you're done")
-//   * Ratio 1.50 → 1.30 (gentler growth so the compounding-margin formula
-//     above can keep up; otherwise the player's profit can't outrun goals)
-// Sequence at base=200, ratio=1.30 (i = goal index, milestone = i+1):
-//   i=0: 200    i=1: 460     i=2: 798     i=3: 1,237
-//   i=4: 1,809  i=5: 2,551   i=7: 4,772   i=9: 8,524
-//   i=11: 14,865  i=14: 33,457  i=19: ≈129k
-function goalAt(i){ return Math.round(200 * (Math.pow(1.30, (i|0)+1) - 1) / 0.30); }
+// 2026-06-16 v7 — user still "整体都太容易". v6 base 200 wasn't enough vs the
+// real 500-1500 daily net. Coupled with the v7 rent bump above, goal base
+// 200 → 300 puts milestone 1 at ~1 day's net (instead of <½ day) and pushes
+// every later goal up proportionally:
+//   i=0: 300    i=1: 690     i=2: 1,197   i=3: 1,856
+//   i=4: 2,713  i=5: 3,827   i=7: 7,157   i=9: 12,786
+//   i=11: 22,298  i=14: 50,186  i=19: ≈196k
+// Ratio 1.30 stays — compounding margin/branch keep up.
+function goalAt(i){ return Math.round(300 * (Math.pow(1.30, (i|0)+1) - 1) / 0.30); }
 const BRANCH_EVERY = 6;   // every Nth upgrade the card also offers an OPTIONAL new branch
 const FANTASY_AT   = 1;   // from this milestone on, the card offers the one-time "after dark" fantasy unlock
 let bankrupt=false;
