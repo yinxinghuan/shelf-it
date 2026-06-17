@@ -2021,14 +2021,19 @@ const CLERK_WAGE = 27;                          // 2026-06-16 v4 — scaled +50%
 const RENT_BASE = 27, RENT_PER_UNIT = 16, RENT_LEVEL = 0.18;
 function rentFor(){ return Math.round(RENT_BASE*(1 + RENT_LEVEL*(level-1)) + RENT_PER_UNIT*drawUnits()); }
 // ── endless milestone goals (net-worth tiers) ──────────────────────────────────
-// 2026-06-16 v3 midpoint — 1.42 made the whole game feel too easy because cash
-// growth outpaced goal growth (the same trap the comment for 1.55 originally
-// flagged). Pulled back to 1.50× with matching denominator (0.50) — keeps
-// goalAt(0)=60 and slows the cash-vs-goal race to a near tie:
-//   1.50×: goalAt(0)=60, (1)=150, (2)=285, (3)=488, (5)=1247, (7)=2896, (10)≈10380
-//   1.42×: (5)=1030, (7)=2222, (10)≈7137   (was too easy)
-//   1.55×: (5)=1404, (7)=3528, (10)≈13200  (was too hard late)
-function goalAt(i){ return Math.round(60 * (Math.pow(1.50, (i|0)+1) - 1) / 0.50); }
+// 2026-06-16 v6 — re-anchor for measured-profit reality. User test data: daily
+// net is 500-1500 even at opening with linear-margin upgrades; the 60 base
+// + 1.50 ratio meant goal[0..9] were trivially cleared in 1-2 days each
+// ("前 10 关相当于白给"). Two-axis fix:
+//   * Base 60 → 200 (matches a fraction of an opening day's net, so goal[0]
+//     actually requires *some* play, not "open the doors and you're done")
+//   * Ratio 1.50 → 1.30 (gentler growth so the compounding-margin formula
+//     above can keep up; otherwise the player's profit can't outrun goals)
+// Sequence at base=200, ratio=1.30 (i = goal index, milestone = i+1):
+//   i=0: 200    i=1: 460     i=2: 798     i=3: 1,237
+//   i=4: 1,809  i=5: 2,551   i=7: 4,772   i=9: 8,524
+//   i=11: 14,865  i=14: 33,457  i=19: ≈129k
+function goalAt(i){ return Math.round(200 * (Math.pow(1.30, (i|0)+1) - 1) / 0.30); }
 const BRANCH_EVERY = 6;   // every Nth upgrade the card also offers an OPTIONAL new branch
 const FANTASY_AT   = 1;   // from this milestone on, the card offers the one-time "after dark" fantasy unlock
 let bankrupt=false;
@@ -2037,8 +2042,18 @@ function drawUnits(){ return (owned.shelf||0)+(owned.fridge||0)+(owned.fresh||0)
 function stockUnits(){ return (owned.shelf||0)+(owned.fridge||0)+(owned.fresh||0); }                                   // the stockable fixtures
 function spawnGapMul(){ return Math.max(0.5, Math.pow(0.96, drawUnits())); }   // 招客: a fuller floor draws a faster crowd
 function custCap(){ return Math.min(14, 4 + Math.round(drawUnits()*0.5)); }    // 招客: more fixtures → more shoppers at once
-function priceMul(){ return varietyMult() * (1 + 0.06*marginLvl); }            // 加价: variety synergy × the (endless) profit-margin upgrade (2026-06-16 v3 — back to 0.06 baseline; 0.07 still snowballed cash too fast)
-function branchMult(){ return 1 + 0.25*branches; }                             // each optional new branch lifts ALL takings (shelf + coffee + rack)
+// 2026-06-16 v6 — make profit COMPOUND (was linear) so it can keep pace with
+// the geometric goal curve. Linear markup (+6% per upgrade) hit a ~1500/day
+// ceiling in late game while goals kept doubling. Compounding × compounding
+// lets a fully-invested store actually reach 10k+/day.
+//   marginLvl 5  → 2.01× (was 1.30)
+//   marginLvl 10 → 4.05× (was 1.60)
+//   marginLvl 15 → 8.14× (was 1.90)
+//   branches 1   → 1.30× (was 1.25)
+//   branches 2   → 1.69× (was 1.50)
+//   branches 4   → 2.86× (was 2.00)
+function priceMul(){ return varietyMult() * Math.pow(1.15, marginLvl); }
+function branchMult(){ return Math.pow(1.30, branches); }
 function restockSecs(){ return Math.max(0.5, RESTOCK_TIME*Math.pow(0.94, stockUnits())); }  // 理货: more aisles → tighter restock throughput
 // ── equipment economy (#61): each unlocked fixture is a real earner. Stacking the same
 //    family keeps paying but with soft diminishing returns; spreading across families pays a synergy bonus.
