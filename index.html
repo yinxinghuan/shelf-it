@@ -1608,7 +1608,13 @@ const PROD_FAMS  = ['shelf','fridge','fresh','coffee','rack'];   // product/sale
 // lean opening — leaves real room for upgrades (every fixture-unlock card matters).
 // fridge:3 = 2 coolers + 1 freezer; fresh:1 = one produce bin from day 1 so a
 // shopper asking for fruit/veg has somewhere to land — and bin #2 is one fresh upgrade away.
-const EQUIP_START = { shelf:3, fridge:3, fresh:1, coffee:0, rack:0, checkout:0 };
+// 2026-06-16 v5 — opening fitout 7→5 fixtures (drop 1 shelf + 1 fridge).
+// Day-1 revenue at 7 fixtures + 100s shift snowballed past goal[0]=60 by
+// ~10× and trivialized the first 3-4 milestones via carryover. A leaner
+// opening forces the player to *earn* the first upgrade card instead of
+// arriving at it. Each milestone card can grow this back out toward the
+// full EQUIP[fam].length cap anyway.
+const EQUIP_START = { shelf:2, fridge:2, fresh:1, coffee:0, rack:0, checkout:0 };
 // `owned` is the single source of truth for the floor: starts partially fitted and ONLY
 // grows. Every milestone adds a fixture / margin / branch — there is no sparse-reset setback.
 let owned = Object.assign({}, EQUIP_START);
