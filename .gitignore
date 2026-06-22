@@ -1,2 +1,4 @@
-_poster_raw.png
+node_modules
+dist
+_*.py
 .DS_Store
