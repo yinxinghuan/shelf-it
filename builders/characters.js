@@ -8,6 +8,7 @@ import { ARCHETYPES } from './archetypes.js'; // dedicated profession + pop-cult
 import { VILLAINS } from './villains.js';     // urban "elite" silhouettes: swat / viking — block-party boss models, now also a heavy-build shopper crowd
 import { MECHS } from './mechs.js';           // sci-fi mech silhouettes: combatMech — block-party boss model
 import { MYTHIC } from './mythic.js';         // mythic silhouettes: minotaur — block-party boss model
+import { OFFICE } from './office.js';         // corporate office pack: executive, courier, janitor, barista, securityGuard
 
 const EYE = 0x241f1c, FRAME = 0x4a3526;   // facial micro-detail (literal, like animal faces)
 
@@ -212,6 +213,10 @@ export const CHARACTERS = {
   // ── fantasy customers: dedicated horror builders, distinct silhouettes (after-dark unlock).
   //    vampire · werewolf · zombie · ghost · skeleton · mummy — see builders/monsters.js ──
   ...MONSTERS,
+
+  // ── office ecosystem: corporate archetypes for the working-world crowd.
+  //    executive · courier · janitor · barista · securityGuard — see builders/office.js ──
+  ...OFFICE,
 
   // ── boss / elite roster (block-party L2-L4 bosses) — chunky shoppers with
   //    weapons + armor that read as "boss" silhouette in 3D. Spawn alongside

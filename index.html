@@ -744,6 +744,13 @@ const ARCH = {
   rapper:      { char:'rapper',      wants:['drink','snack','cold','icecream'] },              // refreshment, no booze
   biker:       { char:'biker',       wants:['liquor','mead','noodle','snack','drink'] },       // gas-and-go regular — mead alongside the usual
   goth:        { char:'goth',        wants:['cold','sundry','liquor','snack'] },               // night-owl staple
+      // office ecosystem
+      executive:   { char:'executive',   wants:['coffee','coffee','noodle','drink','sundry'] },
+      courier:     { char:'courier',     wants:['drink','cold','snack','noodle'] },
+      janitor:     { char:'janitor',     wants:['coffee','drink','snack','sundry'] },
+      barista:     { char:'barista',     wants:['coffee','dairy','cold','snack'] },
+      securityGuard:{char:'securityGuard',wants:['coffee','drink','noodle','snack'] },
+      paramedic:   { char:'paramedic',   wants:['coffee','drink','cold','snack','noodle'] },
   // boss / elite crowd — block-party boss models repurposed as heavy-build shoppers,
   // spawned alongside the regular crowd (NOT fantasy-gated) so they're visible early.
   // Each one has a SIGNATURE craving (mead for viking/minotaur, protein for swat/mech)
@@ -771,10 +778,10 @@ const PERIODS = [
   // 2026-06-16 (later): added 4th period 'night' — late-shift crowd, lights dim down,
   // store leans into the goth/biker/punk/cowboy/viking after-dark register. Fractions
   // rebalanced 0.34/0.33/0.33 → 0.25/0.25/0.25/0.25 so the 100s day splits evenly.
-  { id:'morning', name:'早高峰', en:'Morning Rush', frac:0.25, gap:2.5, mix:{businessman:3, officeWoman:3, oldman:2, granny:2, student:1, blonde:1, fitWoman:2, chef:1, cop:2, nurse:2, construction:2, swat:2, combatMech:1} },
-  { id:'noon',    name:'午市',   en:'Midday',       frac:0.25, gap:1.5, mix:{businessman:2, officeWoman:2, darkWoman:2, blonde:2, granny:1, oldman:1, student:1, kid:1, chef:2, bigGuy:1, fitWoman:1, delivery:3, construction:2, cop:1, cowboy:1, biker:1, viking:2, minotaur:2, swat:1, combatMech:1} },
-  { id:'school',  name:'放学',   en:'After School', frac:0.25, gap:1.4, mix:{student:4, kid:4, blonde:1, darkWoman:1, officeWoman:1, teen:4, bigGuy:2, firefighter:2, rapper:3, punk:2, biker:2, goth:2, cowboy:1, delivery:2, viking:2, minotaur:1, combatMech:2} },
-  { id:'night',   name:'深夜',   en:'Night Shift',  frac:0.25, gap:1.8, mix:{goth:4, biker:4, punk:4, cowboy:3, rapper:2, viking:3, minotaur:2, delivery:2, darkWoman:1, bigGuy:2, oldman:1, swat:1, firefighter:1, construction:1} },
+  { id:'morning', name:'早高峰', en:'Morning Rush', frac:0.25, gap:2.5, mix:{businessman:3, officeWoman:3, oldman:2, granny:2, student:1, blonde:1, fitWoman:2, chef:1, cop:2, nurse:2, construction:2, swat:2, combatMech:1, executive:2, courier:2, janitor:2, paramedic:1} },
+  { id:'noon',    name:'午市',   en:'Midday',       frac:0.25, gap:1.5, mix:{businessman:2, officeWoman:2, darkWoman:2, blonde:2, granny:1, oldman:1, student:1, kid:1, chef:2, bigGuy:1, fitWoman:1, delivery:3, construction:2, cop:1, cowboy:1, biker:1, viking:2, minotaur:2, swat:1, combatMech:1, executive:2, courier:2, barista:2, securityGuard:1, paramedic:1} },
+  { id:'school',  name:'放学',   en:'After School', frac:0.25, gap:1.4, mix:{student:4, kid:4, blonde:1, darkWoman:1, officeWoman:1, teen:4, bigGuy:2, firefighter:2, rapper:3, punk:2, biker:2, goth:2, cowboy:1, delivery:2, viking:2, minotaur:1, combatMech:2, barista:2, paramedic:1} },
+  { id:'night',   name:'深夜',   en:'Night Shift',  frac:0.25, gap:1.8, mix:{goth:4, biker:4, punk:4, cowboy:3, rapper:2, viking:3, minotaur:2, delivery:2, darkWoman:1, bigGuy:2, oldman:1, swat:1, firefighter:1, construction:1, securityGuard:3, paramedic:2} },
 ];
 const periodName = p => (LOCALE==='zh' ? p.name : p.en);   // time-of-day label in the active locale
 
