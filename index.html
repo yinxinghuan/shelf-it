@@ -351,6 +351,9 @@
   .lbrow.tap{cursor:pointer;}
   .lbrow.tap:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);}
   .lbempty{text-align:center;color:#7a6f62;font-size:13px;font-weight:700;padding:22px 0;}
+  .lbempty.download{display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .lbdownload{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 14px;border-radius:999px;border:2px solid var(--ink);background:var(--yellow);color:var(--ink);text-decoration:none;font-weight:900;-webkit-tap-highlight-color:transparent;}
+  .lbdownload:active{transform:translate(1px,1px);}
 </style>
 </head>
 <body>
@@ -499,7 +502,7 @@ const I18N = {
     btn_next:'明天继续', btn_replay:'重开', btn_lb:'查看排行榜', btn_close:'关闭', hire:'雇店员', fire:'解雇', staff_count:'在岗店员', fired:'已解雇', last_clerk:'至少留一名店员',
     staff_title:'店员', staff_desc:'店员会在店里自动巡场、补满空货架。每名店员每天领一份工钱。', staff_wage:'每人 · 每日工钱',
     btn_restart:'从头开始', restart_confirm:'再点一次清空存档',
-    lb_title:'资产排行榜', lb_sub:'历史最高资产', lb_player:'玩家', lb_you:'你', lb_loading:'载入中…', lb_empty:'还没有排名 · 撑过今天上榜',
+    lb_title:'资产排行榜', lb_sub:'历史最高资产', lb_player:'玩家', lb_you:'你', lb_loading:'载入中…', lb_empty:'还没有排名 · 撑过今天上榜', lb_open_alteru:'在 AlterU 中打开即可查看排行榜', lb_download:'下载 AlterU',
     open_title:'今天主打什么', open_sub:'选一个品类 · 顾客更想买 · 卖得更贵', headliner:'主打',
     head_liquidation:'清算', goals_all:'目标全达成', goal_lbl:'目标', net:'资产', hi:'历史最高',
     combo:'连击 ×{n}', hired:'雇! -¥{n}', headliner_tag:'主打 · {name}',
@@ -2199,6 +2202,7 @@ function restoreOnBoot(){
     }).catch(()=>{});
 }
 // ── leaderboard view ──
+const ALTERU_APP_URL = 'https://apps.apple.com/app/id6769646546';
 const lbEl=document.getElementById('lb'), lbBodyEl=document.getElementById('lbBody'),
       lbBtnEl=document.getElementById('lbBtn'), lbCloseEl=document.getElementById('lbClose'),
       restartRunEl=document.getElementById('restartRun');
@@ -2227,11 +2231,15 @@ function renderLB(rows){
     lbBodyEl.appendChild(row);
   });
 }
+function renderDownloadLB(){
+  lbBodyEl.innerHTML='<div class="lbempty download"><span>'+t('lb_open_alteru')+'</span><a class="lbdownload" href="'+ALTERU_APP_URL+'" target="_blank" rel="noopener noreferrer">'+t('lb_download')+'</a></div>';
+}
 function openLB(){
   lbBodyEl.innerHTML='<div class="lbempty">'+t('lb_loading')+'</div>'; lbEl.classList.add('show');
+  if(!A.isInAigram){ renderDownloadLB(); return; }
   fetchGlobal().then(renderLB);
 }
-if(A.canRank) lbBtnEl.classList.add('show');
+lbBtnEl.classList.add('show');
 lbBtnEl.addEventListener('click', openLB);
 lbCloseEl.addEventListener('click', ()=>lbEl.classList.remove('show'));
 lbEl.addEventListener('click', e=>{ if(e.target===lbEl) lbEl.classList.remove('show'); });
