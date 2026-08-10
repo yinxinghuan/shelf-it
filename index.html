@@ -2145,7 +2145,7 @@ function persistRun(opts){ localSave(); cloudSave(); submitScore(); if (opts && 
 // Snapshot taken at kickoffGame; fired on bankrupt day-close (true end-of-run).
 let preRunBest = 0;
 function snapshotPreRunBest(){
-  if(!A.canRank || !A.telegramId) { preRunBest = 0; return; }
+  if(!A.isInAigram || !A.telegramId) { preRunBest = 0; return; }
   A.callAigramAPI('/note/aigram/ai/game/rank/score/list/by/session_id?session_id=' + A.gameUuid, 'GET')
     .then(res => {
       const rows = Array.isArray(res) ? res : (res && res.data) || [];
