@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="./alteru-storage-scope.js" data-alteru-storage-scope data-game-storage-id="3a3bf201-5e03-4110-a041-c696592e7ae4"></script>
     <meta name="game-uuid" content="3a3bf201-5e03-4110-a041-c696592e7ae4" />
 
 <meta charset="utf-8"/>
@@ -523,7 +524,7 @@ const I18N = {
   },
 };
 const LOCALE = (() => {
-  const o = localStorage.getItem('shelfit_locale'); if(o==='en'||o==='zh') return o;
+  const o = alteruLocalStorage.getItem('shelfit_locale'); if(o==='en'||o==='zh') return o;
   return (navigator.language||'').toLowerCase().startsWith('zh') ? 'zh' : 'en';
 })();
 function t(key, vars){
@@ -2079,7 +2080,7 @@ let cash=START_CASH, displayedCash=START_CASH, day=1, goalIdx=0, level=1, margin
     dayCoffee=0, dayRack=0,                        // per-day till attach revenue, broken out for the books panel
     curPeriod=null,                              // active time-of-day period (drives crowd + HUD label)
     nightT=0;                                    // 0..1 lighting blend; 1 = full night dim (set per-frame from currentPeriod)
-const HISCORE_KEY='shelfit_hi'; let hiScore=+(localStorage.getItem(HISCORE_KEY)||0);
+const HISCORE_KEY='shelfit_hi'; let hiScore=+(alteruLocalStorage.getItem(HISCORE_KEY)||0);
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  PLATFORM RUNTIME — leaderboard (历史最高资产) + cross-session cloud save
@@ -2104,7 +2105,7 @@ function applyRunState(s){
   day = s.day|0 || 1; goalIdx = s.goalIdx|0;
   marginLvl = Math.max(0, s.marginLvl|0); branches = Math.max(0, s.branches|0);
   level = 1 + branches;                                  // prestige tier is driven by branches now (rent scaling)
-  hiScore = Math.max(hiScore, s.hiScore|0); localStorage.setItem(HISCORE_KEY, hiScore);
+  hiScore = Math.max(hiScore, s.hiScore|0); alteruLocalStorage.setItem(HISCORE_KEY, hiScore);
   // restore the fitted-out fixtures; older saves with no `owned` default to the starting loadout
   if(s.owned && typeof s.owned==='object'){
     owned = {}; EQUIP_FAMS.forEach(f => owned[f] = Math.max(0, s.owned[f]|0));   // stacking is uncapped (coffee empire) → don't clamp to EQUIP_FULL
@@ -2128,7 +2129,7 @@ function applyRunState(s){
   buildStore();                                          // stand the store back up from the restored `owned`
   setDayLabel();                                         // (buildStore, not rebuildStore: restore only runs pre-play, before tidyEls/customers exist — TDZ-safe)
 }
-function localSave(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(runSnapshot())); }catch(e){} }
+function localSave(){ try{ alteruLocalStorage.setItem(SAVE_KEY, JSON.stringify(runSnapshot())); }catch(e){} }
 function cloudSave(){
   if(!A.isInAigram) return;
   try{ A.postAigramAPI('/note/aigram/ai/game/save/data',
@@ -2188,7 +2189,7 @@ async function trySendBeatNotify(myScore){
 }
 // boot restore: local first (instant), then seed from cloud only if no local run exists
 function restoreOnBoot(){
-  let local=null; try{ local = JSON.parse(localStorage.getItem(SAVE_KEY)||'null'); }catch(e){}
+  let local=null; try{ local = JSON.parse(alteruLocalStorage.getItem(SAVE_KEY)||'null'); }catch(e){}
   if(local){ applyRunState(local); return; }
   if(!A.isInAigram || !A.telegramId) return;
   A.callAigramAPI(`/note/aigram/ai/game/get/data/list?session_id=${encodeURIComponent(A.gameUuid)}`)
@@ -2669,7 +2670,7 @@ function endOfDay(){
   // milestone check (only when solvent): clear ONE tier per day → one upgrade card next morning
   let hitGoal = null;
   if(!bankrupt && cash >= goalAt(goalIdx)){ hitGoal = goalAt(goalIdx); goalIdx++; branchPending = true; }
-  if(cash > hiScore){ hiScore = cash; localStorage.setItem(HISCORE_KEY, hiScore); }
+  if(cash > hiScore){ hiScore = cash; alteruLocalStorage.setItem(HISCORE_KEY, hiScore); }
   persistRun({ runEnded: bankrupt });                    // platform: save run + submit 历史最高资产 every day-close; fire score_beat on bankrupt only
 
   const stampEl = document.getElementById('stamp');
