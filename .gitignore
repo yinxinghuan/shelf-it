@@ -1,4 +1,7 @@
 node_modules
 dist
+dist-crazygames
+artifacts/*.zip
+artifacts/crazygames/
 _*.py
 .DS_Store

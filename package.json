@@ -3,7 +3,12 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "scripts": { "dev": "vite", "build": "vite build", "preview": "vite preview" },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:crazygames": "vite build --mode crazygames && node scripts/package-crazygames.mjs",
+    "preview": "vite preview"
+  },
   "dependencies": { "three": "0.160.0" },
   "devDependencies": { "vite": "^5.1.0" }
 }
