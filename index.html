@@ -467,6 +467,7 @@ import { CHARACTERS } from './builders/characters.js';
 import { PROPS } from './builders/props.js';
 import { PLANTS } from './builders/plants.js';
 import { SCENE } from './builders/scene.js';
+import { isCrazyGamesBuild } from './src/deployTarget.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  i18n — ENGLISH by default (platform is US/English-market); Chinese only when
@@ -480,7 +481,7 @@ const I18N = {
     btn_next:'Next Day', btn_replay:'Restart', btn_lb:'Leaderboard', btn_close:'Close', hire:'Hire clerk', fire:'Dismiss', staff_count:'Clerks on duty', fired:'Dismissed', last_clerk:'Keep at least one clerk',
     staff_title:'STAFF', staff_desc:'Clerks roam the floor and restock empty shelves on their own. Each draws a daily wage.', staff_wage:'Wage each · per day',
     btn_restart:'Start over', restart_confirm:'Tap again to wipe progress',
-    lb_title:'NET WORTH', lb_sub:'best net worth', lb_player:'Player', lb_you:'YOU', lb_loading:'Loading…', lb_empty:'No ranks yet · survive today to make the board',
+    lb_title:'NET WORTH', lb_sub:'best net worth', lb_player:'Player', lb_you:'YOU', lb_loading:'Loading…', lb_empty:'No ranks yet · survive today to make the board', lb_guest:'Your best net worth stays on this device. No account is required to play.',
     open_title:'TODAY’S HEADLINER', open_sub:'pick a category · shoppers crave it · sells for more', headliner:'Headliner',
     head_liquidation:'LIQUIDATION', goals_all:'ALL GOALS CLEARED', goal_lbl:'Goal', net:'Net worth', hi:'Best',
     combo:'Combo ×{n}', hired:'Hired! -¥{n}', headliner_tag:'Headliner · {name}',
@@ -504,7 +505,7 @@ const I18N = {
     btn_next:'明天继续', btn_replay:'重开', btn_lb:'查看排行榜', btn_close:'关闭', hire:'雇店员', fire:'解雇', staff_count:'在岗店员', fired:'已解雇', last_clerk:'至少留一名店员',
     staff_title:'店员', staff_desc:'店员会在店里自动巡场、补满空货架。每名店员每天领一份工钱。', staff_wage:'每人 · 每日工钱',
     btn_restart:'从头开始', restart_confirm:'再点一次清空存档',
-    lb_title:'资产排行榜', lb_sub:'历史最高资产', lb_player:'玩家', lb_you:'你', lb_loading:'载入中…', lb_empty:'还没有排名 · 撑过今天上榜', lb_open_alteru:'在 AlterU 中打开即可查看排行榜', lb_download:'下载 AlterU',
+    lb_title:'资产排行榜', lb_sub:'历史最高资产', lb_player:'玩家', lb_you:'你', lb_loading:'载入中…', lb_empty:'还没有排名 · 撑过今天上榜', lb_guest:'历史最高资产保存在本机，无需登录即可游玩。',
     open_title:'今天主打什么', open_sub:'选一个品类 · 顾客更想买 · 卖得更贵', headliner:'主打',
     head_liquidation:'清算', goals_all:'目标全达成', goal_lbl:'目标', net:'资产', hi:'历史最高',
     combo:'连击 ×{n}', hired:'雇! -¥{n}', headliner_tag:'主打 · {name}',
@@ -523,6 +524,12 @@ const I18N = {
     unlock_toast:'已解锁!', eq_installed:'已添置', eq_branch_open:'分店开张',
   },
 };
+// AlterU download copy stays on the default build only. Vite drops this branch
+// from the Crazy Games bundle, so guests never see an App Store gate.
+if(!isCrazyGamesBuild){
+  I18N.zh.lb_open_alteru = '在 AlterU 中打开即可查看排行榜';
+  I18N.zh.lb_download = '下载 AlterU';
+}
 const LOCALE = (() => {
   const o = alteruLocalStorage.getItem('shelfit_locale'); if(o==='en'||o==='zh') return o;
   return (navigator.language||'').toLowerCase().startsWith('zh') ? 'zh' : 'en';
@@ -2087,7 +2094,11 @@ const HISCORE_KEY='shelfit_hi'; let hiScore=+(alteruLocalStorage.getItem(HISCORE
 //  localStorage is the instant source of truth (instant-play); cloud is the
 //  durable backup that seeds a fresh device. State persisted on every day-close.
 // ─────────────────────────────────────────────────────────────────────────────
-const A = window.Aigram || { isInAigram:false, canRank:false };
+// Crazy Games guests are not an Aigram session, even when the host URL
+// carries api_origin / telegram_id. Progress stays in localStorage.
+const A = isCrazyGamesBuild
+  ? { isInAigram:false, canRank:false }
+  : (window.Aigram || { isInAigram:false, canRank:false });
 const SAVE_KEY = 'shelfit_run';
 let lbCurrentUser = null;
 if(A.isInAigram && A.telegramId){
@@ -2204,7 +2215,6 @@ function restoreOnBoot(){
     }).catch(()=>{});
 }
 // ── leaderboard view ──
-const ALTERU_APP_URL = 'https://apps.apple.com/app/id6769646546';
 const lbEl=document.getElementById('lb'), lbBodyEl=document.getElementById('lbBody'),
       lbBtnEl=document.getElementById('lbBtn'), lbCloseEl=document.getElementById('lbClose'),
       restartRunEl=document.getElementById('restartRun');
@@ -2233,11 +2243,19 @@ function renderLB(rows){
     lbBodyEl.appendChild(row);
   });
 }
+function renderGuestLB(){
+  const d=document.createElement('div'); d.className='lbempty'; d.textContent=t('lb_guest');
+  lbBodyEl.innerHTML=''; lbBodyEl.appendChild(d);
+}
 function renderDownloadLB(){
+  if(isCrazyGamesBuild) return;
+  const ALTERU_APP_URL = 'https://apps.apple.com/app/id6769646546';
   lbBodyEl.innerHTML='<div class="lbempty download"><span>'+t('lb_open_alteru')+'</span><a class="lbdownload" href="'+ALTERU_APP_URL+'" target="_blank" rel="noopener noreferrer">'+t('lb_download')+'</a></div>';
 }
 function openLB(){
-  lbBodyEl.innerHTML='<div class="lbempty">'+t('lb_loading')+'</div>'; lbEl.classList.add('show');
+  lbEl.classList.add('show');
+  if(isCrazyGamesBuild){ renderGuestLB(); return; }
+  lbBodyEl.innerHTML='<div class="lbempty">'+t('lb_loading')+'</div>';
   if(!A.isInAigram){ renderDownloadLB(); return; }
   fetchGlobal().then(renderLB);
 }
