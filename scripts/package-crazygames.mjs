@@ -1,6 +1,6 @@
 // Copy the Crazy Games Vite output into artifacts/ and zip it with index.html
 // at the archive root (Crazy Games upload layout).
-import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,6 +12,60 @@ const zipPath = path.join(root, 'artifacts', 'shelf-it-crazygames.zip');
 
 if (!existsSync(path.join(dist, 'index.html'))) {
   console.error('dist-crazygames/index.html is missing. Run vite build --mode crazygames first.');
+  process.exit(1);
+}
+
+// Visible cross-promo and login-wall leftovers. The bridge file and the
+// localStorage scope stay; they are not drawn on screen.
+const forbidden = [
+  'guest-shell.js',
+  'https://alteru.app',
+  'alteru.app',
+  'apps.apple.com',
+  'GET ALTERU',
+  '下载 AlterU',
+  '在 AlterU 中打开',
+  'Open in AlterU',
+  'App Store',
+  'AIGRAM',
+];
+
+function walk(dir) {
+  const files = [];
+  for (const name of readdirSync(dir)) {
+    const full = path.join(dir, name);
+    if (statSync(full).isDirectory()) files.push(...walk(full));
+    else files.push(full);
+  }
+  return files;
+}
+
+const leaks = [];
+for (const file of walk(dist)) {
+  if (!/\.(html|js|css)$/.test(file)) continue;
+  const text = readFileSync(file, 'utf8');
+  for (const needle of forbidden) {
+    if (text.includes(needle)) leaks.push(`${path.relative(root, file)} contains ${needle}`);
+  }
+}
+
+const indexHtml = readFileSync(path.join(dist, 'index.html'), 'utf8');
+if (!/class="cg-guest"/.test(indexHtml) || !/lang="en"/.test(indexHtml)) {
+  leaks.push('dist-crazygames/index.html must be <html lang="en" class="cg-guest">');
+}
+if (!indexHtml.includes('<title>Shelf It</title>')) {
+  leaks.push('dist-crazygames/index.html title must be Shelf It');
+}
+if (!indexHtml.includes('id="cg-guest-chrome"') || !indexHtml.includes('alteru-guest-banner')) {
+  leaks.push('dist-crazygames/index.html is missing the guest chrome scrubber');
+}
+if (/<script\b[^>]*\bsrc=["'][^"']*(?:guest-shell|images\.aiwaves\.tech\/alteru|alteru\.app)/i.test(indexHtml)) {
+  leaks.push('dist-crazygames/index.html still loads an AlterU guest shell script');
+}
+
+if (leaks.length) {
+  console.error(leaks.join('\n'));
+  console.error('Crazy Games output still contains an AlterU login wall, download gate, or guest-shell watermark.');
   process.exit(1);
 }
 
